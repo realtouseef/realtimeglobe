@@ -1,0 +1,227 @@
+import { useState, useEffect, useCallback } from 'react';
+import * as topojson from 'topojson-client';
+import { Globe } from './components/Globe';
+import { GlobeControls } from './components/GlobeControls';
+import { useRealtimeData } from './hooks/useRealtimeData';
+import { getGeoCentroid } from './utils/geo';
+import type { DataPoint, ArcData, RingData, CountryData, LabelData } from './types/globe.types';
+
+// Constants for visitor types and colors
+const VISITOR_TYPES = {
+  NEW: { color: '#00ff88', label: 'New Visitor' }, // Bright cyan/green
+  ACTIVE: { color: '#0088ff', label: 'Active User' }, // Electric blue
+  CONVERSION: { color: '#ffaa00', label: 'Conversion' } // Golden orange
+};
+
+// Helper to generate random coordinates (weighted slightly towards populated areas roughly)
+// For simplicity we still use random, but we could improve this later
+const randomCoords = () => ({
+  lat: (Math.random() - 0.5) * 160,
+  lng: (Math.random() - 0.5) * 360,
+});
+
+function App() {
+  const {
+    points,
+    arcs,
+    rings,
+    addPoint,
+    addArc,
+    addRing,
+    clearAll,
+    removePoint
+  } = useRealtimeData();
+
+  const [isRotating, setIsRotating] = useState(true);
+  const [logs, setLogs] = useState<string[]>([]);
+  const [countries, setCountries] = useState<CountryData[]>([]);
+  const [labels, setLabels] = useState<LabelData[]>([]);
+
+  const addLog = (message: string) => {
+    setLogs(prev => [message, ...prev].slice(0, 20)); // Keep last 20 logs
+  };
+
+  useEffect(() => {
+    // Fetch country data
+    fetch('//unpkg.com/world-atlas/countries-110m.json')
+      .then(res => res.json())
+      .then(worldData => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const countriesGeo = (topojson.feature(worldData, worldData.objects.countries) as any).features;
+        setCountries(countriesGeo);
+
+        // Generate labels from countries
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const countryLabels: LabelData[] = countriesGeo.map((feature: any) => {
+            const centroid = getGeoCentroid(feature);
+            if (!centroid) return null;
+            
+            return {
+                lat: centroid.lat,
+                lng: centroid.lng,
+                label: feature.properties.NAME || feature.properties.name || feature.properties.ADMIN || '',
+                size: 0.6,
+                color: 'rgba(210, 210, 210, 0.75)',
+                dotRadius: 0,
+                altitude: 0.01
+            };
+        }).filter((l: LabelData | null) => l !== null && l.label !== '');
+         
+         console.log(`Generated ${countryLabels.length} country labels`);
+         setLabels(countryLabels as LabelData[]);
+      });
+  }, []);
+
+  const handleAddVisitor = useCallback(() => {
+    const { lat, lng } = randomCoords();
+    
+    // Determine visitor type
+    const rand = Math.random();
+    let type = VISITOR_TYPES.ACTIVE;
+    if (rand > 0.9) type = VISITOR_TYPES.CONVERSION;
+    else if (rand > 0.6) type = VISITOR_TYPES.NEW;
+
+    const point: DataPoint = {
+      lat,
+      lng,
+      size: 0.4, // Small but visible
+      color: type.color,
+      label: `${type.label} (${lat.toFixed(1)}, ${lng.toFixed(1)})`,
+      altitude: 0.02,
+      customData: { type: type.label, timestamp: Date.now() }
+    };
+    
+    addPoint(point);
+    addLog(`New ${type.label} from ${lat.toFixed(1)}, ${lng.toFixed(1)}`);
+
+    // Add a ring effect (Radar Pulse)
+    const ring: RingData = {
+      lat,
+      lng,
+      maxRadius: 4,
+      propagationSpeed: 2,
+      repeatPeriod: 800, // Fast pulse
+      color: type.color
+    };
+    addRing(ring);
+
+    // Occasionally add an arc from a previous point if available
+    if (points.length > 0 && Math.random() > 0.7) {
+        const prevPoint = points[Math.floor(Math.random() * points.length)];
+        const arc: ArcData = {
+            startLat: prevPoint.lat,
+            startLng: prevPoint.lng,
+            endLat: lat,
+            endLng: lng,
+            color: [prevPoint.color || '#ffffff', type.color],
+            altitude: 0.2 + Math.random() * 0.2,
+            strokeWidth: 1,
+            dashLength: 0.4,
+            dashGap: 0.2,
+            animationTime: 2000
+        };
+        addArc(arc);
+    }
+
+    // Auto-remove after 60 seconds (handled by effect below or simple timeout here)
+    // Using simple timeout for individual point management
+    setTimeout(() => {
+        removePoint(lat, lng);
+    }, 60000);
+
+  }, [addPoint, addRing, addArc, points, removePoint]);
+
+  const handleClear = useCallback(() => {
+    clearAll();
+    addLog('Cleared all data');
+  }, [clearAll]);
+
+  const handleToggleRotation = useCallback(() => {
+    setIsRotating(prev => !prev);
+    addLog(`Rotation ${!isRotating ? 'enabled' : 'disabled'}`);
+  }, [isRotating]);
+
+  // Simulate real-time data
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (points.length < 100) { // Limit total visible points
+        handleAddVisitor();
+      }
+    }, 2000); // New visitor every 2 seconds
+
+    return () => clearInterval(interval);
+  }, [handleAddVisitor, points.length]);
+
+  return (
+    <div style={{ width: '100vw', height: '100vh', position: 'relative', background: '#000011' }}>
+      <Globe 
+        config={{
+          enableAutoRotate: isRotating,
+          autoRotateSpeed: 0.5,
+          backgroundColor: '#000011',
+          globeImageUrl: '//unpkg.com/three-globe/example/img/earth-night.jpg',
+          bumpImageUrl: '//unpkg.com/three-globe/example/img/earth-topology.png',
+          backgroundImageUrl: '//unpkg.com/three-globe/example/img/night-sky.png',
+          enableAtmosphere: true,
+          atmosphereColor: '#3a228a',
+          atmosphereAltitude: 0.15
+        }}
+        points={points}
+        arcs={arcs}
+        rings={rings}
+        countries={countries}
+        labels={labels}
+        onPointClick={(point) => addLog(`Clicked: ${point.label}`)}
+      />
+      
+      <GlobeControls 
+        onAddPoint={handleAddVisitor}
+        onAddArc={() => {}} // Disabled manual arc adding for now to keep it automated
+        onClear={handleClear}
+        onToggleRotation={handleToggleRotation}
+        isRotating={isRotating}
+      />
+
+      {/* Event Log with Glassmorphism */}
+      <div style={{
+        position: 'absolute',
+        top: '20px',
+        left: '20px',
+        width: '300px',
+        background: 'rgba(20, 20, 30, 0.6)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '12px',
+        padding: '20px',
+        color: '#e0e0e0',
+        fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+        fontSize: '13px',
+        pointerEvents: 'none',
+        zIndex: 10,
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)'
+      }}>
+        <h3 style={{ margin: '0 0 15px 0', color: '#fff', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>Live Traffic</h3>
+        <div style={{ height: '200px', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {logs.map((log, i) => (
+            <div key={i} style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                opacity: 1 - i * 0.05,
+                animation: 'fadeIn 0.3s ease-in'
+            }}>
+              <span style={{ 
+                  color: '#888', 
+                  fontSize: '11px', 
+                  marginRight: '10px',
+                  minWidth: '50px' 
+              }}>{new Date().toLocaleTimeString()}</span> 
+              <span style={{ color: '#ccc' }}>{log}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default App;
