@@ -198,9 +198,9 @@ export const useGlobe = (config: GlobeConfig) => {
     if (globeRef.current) {
       globeRef.current
         .polygonsData(countries)
-        .polygonCapColor(() => 'rgba(0, 0, 0, 0)') // Transparent cap to show earth texture
-        .polygonSideColor(() => 'rgba(255, 255, 255, 0.05)')
-        .polygonStrokeColor(() => 'rgba(255, 255, 255, 0.15)') // Subtle borders
+        .polygonCapColor(() => '#374151') // Dark grey for land
+        .polygonSideColor(() => 'rgba(0, 0, 0, 0.2)')
+        .polygonStrokeColor(() => '#111827') // Darker grey for borders
         .polygonLabel(() => ''); // Disable hover label as we use static labels now
     }
   }, []);

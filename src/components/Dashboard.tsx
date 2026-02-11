@@ -1,0 +1,305 @@
+import React, { useMemo } from 'react';
+import type { VisitorData } from '../types/globe.types';
+
+interface DashboardProps {
+  visitors: VisitorData[];
+  siteName: string;
+  avatarUrl: string;
+  onAvatarClick: () => void;
+  isFullscreen: boolean;
+  onToggleFullscreen: () => void;
+  onRefresh?: () => void;
+}
+
+// Icons
+const Icons = {
+  Logo: () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="2" y1="12" x2="22" y2="12" />
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+    </svg>
+  ),
+  Refresh: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M23 4v6h-6" />
+      <path d="M1 20v-6h6" />
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+    </svg>
+  ),
+  Fullscreen: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+    </svg>
+  ),
+  Minimize: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+    </svg>
+  ),
+  Link: () => (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+  ),
+  Desktop: () => (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+      <line x1="8" y1="21" x2="16" y2="21" />
+      <line x1="12" y1="17" x2="12" y2="21" />
+    </svg>
+  ),
+  Mobile: () => (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+      <line x1="12" y1="18" x2="12.01" y2="18" />
+    </svg>
+  ),
+  Google: () => (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <path d="M23.5 12.28c0-.85-.07-1.68-.21-2.48H12v4.7h6.45c-.28 1.5-.96 2.75-2.05 3.48v2.9h3.32c1.94-1.79 3.06-4.43 3.06-7.6z" fill="#4285F4"/>
+      <path d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.32-2.9c-1.07.72-2.44 1.14-4.01 1.14-3.09 0-5.71-2.09-6.64-4.9H2.6v3.08C4.58 21.43 8.02 24 12 24z" fill="#34A853"/>
+      <path d="M5.36 14.43c-.23-.69-.36-1.43-.36-2.19 0-.77.13-1.5.36-2.19V6.97H2.6C1.08 9.99 1.08 13.52 2.6 16.55l2.76-2.12z" fill="#FBBC05"/>
+      <path d="M12 4.77c1.76 0 3.34.61 4.58 1.8l3.43-3.44C17.94 1.15 15.24 0 12 0 8.02 0 4.58 2.57 2.6 6.97l2.76 2.12c.93-2.81 3.55-4.9 6.64-4.9z" fill="#EA4335"/>
+    </svg>
+  )
+};
+
+const HeaderButton: React.FC<{ icon: React.ReactNode; onClick?: () => void }> = ({ icon, onClick }) => (
+  <button 
+    onClick={onClick}
+    style={{
+      background: 'transparent',
+      border: '1px solid rgba(255,255,255,0.2)',
+      borderRadius: '10px',
+      width: '36px',
+      height: '36px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: 'white',
+      cursor: 'pointer',
+      transition: 'background 0.2s',
+      padding: 0
+    }}
+    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+  >
+    {icon}
+  </button>
+);
+
+const StatPill: React.FC<{ icon: React.ReactNode; label: string; count?: number; color?: string }> = ({ icon, label, count, color }) => (
+  <div style={{
+    background: '#242426',
+    borderRadius: '8px',
+    padding: '4px 10px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontSize: '13px',
+    color: '#e0e0e0',
+    whiteSpace: 'nowrap'
+  }}>
+    {typeof icon === 'string' ? (
+      <img src={icon} alt="" style={{ width: '14px', height: '14px', borderRadius: '2px' }} />
+    ) : (
+      icon
+    )}
+    <span style={{ color: color || 'inherit' }}>{label}</span>
+    {count !== undefined && <span style={{ color: '#888', marginLeft: '2px' }}>({count})</span>}
+  </div>
+);
+
+export const Dashboard: React.FC<DashboardProps> = ({
+  visitors,
+  siteName,
+  avatarUrl,
+  onAvatarClick,
+  isFullscreen,
+  onToggleFullscreen,
+  onRefresh
+}) => {
+  // Aggregations
+  const referrers = useMemo(() => {
+    const counts: Record<string, number> = {};
+    visitors.forEach(v => {
+      counts[v.referrer] = (counts[v.referrer] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 20);
+  }, [visitors]);
+
+  const countries = useMemo(() => {
+    const counts: Record<string, number> = {};
+    visitors.forEach(v => {
+      counts[v.country] = (counts[v.country] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 20);
+  }, [visitors]);
+
+  const devices = useMemo(() => {
+    const counts: Record<string, number> = {};
+    visitors.forEach(v => {
+      // Simplify device names for display
+      const simpleDevice = v.device.includes('iPhone') || v.device.includes('Pixel') ? 'Mobile' : 'Desktop';
+      counts[simpleDevice] = (counts[simpleDevice] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 20);
+  }, [visitors]);
+
+  const getReferrerIcon = (ref: string) => {
+    if (ref.toLowerCase().includes('google')) return <Icons.Google />;
+    if (ref.toLowerCase().includes('twitter') || ref.toLowerCase().includes('x.com')) return 'https://abs.twimg.com/favicons/twitter.ico';
+    if (ref.toLowerCase() === 'direct') return <Icons.Link />;
+    return <Icons.Link />; // Default
+  };
+
+  const getCountryFlag = (countryName: string) => {
+    // Map country name to flag code if needed, or just use a generic flag icon
+    // For now using emoji flags is easiest without a library
+    // A simple mapping for demo purposes
+    const countryMap: Record<string, string> = {
+      'USA': '🇺🇸', 'UK': '🇬🇧', 'Japan': '🇯🇵', 'France': '🇫🇷', 'Germany': '🇩🇪',
+      'Australia': '🇦🇺', 'Singapore': '🇸🇬', 'UAE': '🇦🇪', 'Canada': '🇨🇦', 'India': '🇮🇳',
+      'Philippines': '🇵🇭', 'Bulgaria': '🇧🇬', 'Andorra': '🇦🇩'
+    };
+    return countryMap[countryName] || '🏳️';
+  };
+
+  return (
+    <div style={{
+      position: 'absolute',
+      top: '24px',
+      left: '24px',
+      width: '500px',
+      maxWidth: '90vw',
+      background: '#151517',
+      borderRadius: '24px',
+      padding: '24px',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+      color: '#fff',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+      zIndex: 50,
+      border: '1px solid rgba(255,255,255,0.08)'
+    }}>
+      <style>{`
+        .scroll-container::-webkit-scrollbar {
+          display: none;
+        }
+        .scroll-container {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
+
+      {/* Header Row */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ 
+            width: '32px', height: '32px', 
+            background: 'rgba(59, 130, 246, 0.15)', 
+            borderRadius: '8px', 
+            display: 'flex', alignItems: 'center', justifyContent: 'center' 
+          }}>
+            <Icons.Logo />
+          </div>
+          <div style={{ fontSize: '20px', fontWeight: 700, color: '#e0e0e0' }}>RealtimeGlobe</div>
+          <div style={{ fontSize: '13px', color: '#666', fontWeight: 600, letterSpacing: '0.5px', marginTop: '4px' }}>| REAL-TIME</div>
+        </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button 
+            onClick={onAvatarClick}
+            style={{
+              width: '36px', height: '36px', borderRadius: '50%', 
+              overflow: 'hidden', border: '2px solid rgba(255,255,255,0.1)',
+              padding: 0, cursor: 'pointer', background: 'transparent'
+            }}
+          >
+            <img src={avatarUrl} alt="User" style={{ width: '100%', height: '100%' }} />
+          </button>
+          <HeaderButton icon={<Icons.Refresh />} onClick={onRefresh} />
+          <HeaderButton 
+            icon={isFullscreen ? <Icons.Minimize /> : <Icons.Fullscreen />} 
+            onClick={onToggleFullscreen} 
+          />
+        </div>
+      </div>
+
+      {/* Status Row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', fontSize: '18px' }}>
+        <div style={{ width: '10px', height: '10px', background: '#5e9eff', borderRadius: '50%', boxShadow: '0 0 10px #5e9eff' }}></div>
+        <div style={{ fontWeight: 500 }}>
+          {visitors.length} visitors on
+        </div>
+        <div style={{ 
+          background: '#000', 
+          padding: '4px 8px', 
+          borderRadius: '6px', 
+          fontFamily: 'monospace', 
+          fontSize: '14px',
+          border: '1px solid rgba(255,255,255,0.2)'
+        }}>
+          &lt;/&gt; {siteName.toLowerCase()}
+        </div>
+        <div style={{ color: '#666', fontSize: '16px' }}>
+          (est. value: <span style={{ color: '#00ff88' }}>${(visitors.length * 0.6).toFixed(0)}</span>)
+        </div>
+      </div>
+
+      <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', marginBottom: '20px' }}></div>
+
+      {/* Stats Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '16px', alignItems: 'center' }}>
+        {/* Referrers */}
+        <div style={{ color: '#888', fontSize: '14px', fontWeight: 500 }}>Referrers</div>
+        <div className="scroll-container" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '2px' }}>
+          {referrers.map(([ref, count]) => (
+            <StatPill 
+              key={ref} 
+              icon={getReferrerIcon(ref)} 
+              label={ref} 
+              count={count} 
+            />
+          ))}
+          {referrers.length === 0 && <span style={{ color: '#444', fontSize: '13px' }}>Waiting for data...</span>}
+        </div>
+
+        {/* Countries */}
+        <div style={{ color: '#888', fontSize: '14px', fontWeight: 500 }}>Countries</div>
+        <div className="scroll-container" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '2px' }}>
+          {countries.map(([country, count]) => (
+            <StatPill 
+              key={country} 
+              icon={getCountryFlag(country)} 
+              label={country} 
+              count={count} 
+            />
+          ))}
+          {countries.length === 0 && <span style={{ color: '#444', fontSize: '13px' }}>Waiting for data...</span>}
+        </div>
+
+        {/* Devices */}
+        <div style={{ color: '#888', fontSize: '14px', fontWeight: 500 }}>Devices</div>
+        <div className="scroll-container" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '2px' }}>
+          {devices.map(([device, count]) => (
+            <StatPill 
+              key={device} 
+              icon={device === 'Mobile' ? <Icons.Mobile /> : <Icons.Desktop />} 
+              label={device} 
+              count={count} 
+            />
+          ))}
+          {devices.length === 0 && <span style={{ color: '#444', fontSize: '13px' }}>Waiting for data...</span>}
+        </div>
+      </div>
+    </div>
+  );
+};

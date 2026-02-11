@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import * as topojson from 'topojson-client';
 import { Globe } from './components/Globe';
+import { Dashboard } from './components/Dashboard';
 import { useRealtimeData } from './hooks/useRealtimeData';
 import { getGeoCentroid } from './utils/geo';
 import type { DataPoint, CountryData, LabelData, VisitorData } from './types/globe.types';
@@ -19,6 +20,7 @@ const OS_LIST = ['Windows 11', 'macOS Sonoma', 'iOS 17', 'Android 14', 'Linux'];
 const DEVICES = ['Desktop', 'iPhone 15', 'Pixel 8', 'MacBook Pro', 'iPad Air'];
 const CITIES = ['New York', 'London', 'Tokyo', 'Paris', 'Berlin', 'Sydney', 'Singapore', 'Dubai', 'Toronto', 'Mumbai'];
 const COUNTRIES = ['USA', 'UK', 'Japan', 'France', 'Germany', 'Australia', 'Singapore', 'UAE', 'Canada', 'India'];
+const REFERRERS = ['Google', 'Twitter', 'Direct', 'marclou.com', 'Product Hunt', 'Hacker News'];
 const DICEBEAR_STYLES = [
   'adventurer',
   'adventurer-neutral',
@@ -30,10 +32,7 @@ const DICEBEAR_STYLES = [
   'bottts',
   'bottts-neutral',
   'croodles',
-  'croodles-neutral',
-  'dylan',
   'fun-emoji',
-  'glass',
   'icons',
   'identicon',
   'initials',
@@ -41,7 +40,6 @@ const DICEBEAR_STYLES = [
   'lorelei-neutral',
   'micah',
   'miniavs',
-  'minimalist',
   'notionists',
   'notionists-neutral',
   'open-peeps',
@@ -51,7 +49,6 @@ const DICEBEAR_STYLES = [
   'rings',
   'shapes',
   'thumbs',
-  'toon-head'
 ];
 const SITE_NAME = 'realtimeglobe';
 
@@ -89,16 +86,6 @@ function App() {
   const createDiceBearUrl = useCallback((style: string, seed: string) => (
     `https://api.dicebear.com/7.x/${style}/svg?seed=${encodeURIComponent(seed)}`
   ), []);
-
-  const trafficSource = useMemo(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const utmSource = params.get('utm_source');
-      return utmSource && utmSource.trim().length > 0 ? utmSource.trim() : 'direct';
-    } catch {
-      return 'direct';
-    }
-  }, []);
 
   useEffect(() => {
     fetch('//unpkg.com/world-atlas/countries-110m.json')
@@ -168,6 +155,7 @@ function App() {
       os: OS_LIST[Math.floor(Math.random() * OS_LIST.length)],
       duration: `${Math.floor(Math.random() * 10) + 1}m ${Math.floor(Math.random() * 60)}s`,
       currentUrl: `https://example.com/${['products', 'blog', 'pricing', 'about'][Math.floor(Math.random() * 4)]}`,
+      referrer: REFERRERS[Math.floor(Math.random() * REFERRERS.length)],
       avatarUrl: createDiceBearUrl(avatarStyle, `${type.label}-${lat.toFixed(2)}-${lng.toFixed(2)}`)
     };
     
@@ -181,11 +169,6 @@ function App() {
     }, 60000);
 
   }, [addPoint, points, removePoint, avatarStyle, createDiceBearUrl]);
-
-  const handleClear = useCallback(() => {
-    clearAll();
-    addLog('Cleared all data');
-  }, [clearAll]);
 
   const htmlElements = useMemo(() => (
     points.map((point) => ({
@@ -216,28 +199,6 @@ function App() {
     );
   }, [selectedVisitor, avatarStyle, createDiceBearUrl]);
 
-  const totalVisitors = points.length;
-
-  const uniqueCountries = useMemo(() => {
-    const countrySet = new Set<string>();
-    points.forEach((point) => {
-      if ('country' in point && point.country) {
-        countrySet.add(point.country);
-      }
-    });
-    return countrySet.size;
-  }, [points]);
-
-  const uniqueDevices = useMemo(() => {
-    const deviceSet = new Set<string>();
-    points.forEach((point) => {
-      if ('device' in point && point.device) {
-        deviceSet.add(point.device);
-      }
-    });
-    return deviceSet.size;
-  }, [points]);
-
   const handleToggleFullscreen = useCallback(async () => {
     try {
       if (!document.fullscreenElement && dashboardRef.current) {
@@ -253,13 +214,13 @@ function App() {
   const globeConfig = useMemo(() => ({
     enableAutoRotate: false,
     autoRotateSpeed: 0.5,
-    backgroundColor: '#000011',
-    globeImageUrl: '//unpkg.com/three-globe/example/img/earth-night.jpg',
+    backgroundColor: 'rgba(0,0,0,0)',
+    globeImageUrl: null,
     bumpImageUrl: '//unpkg.com/three-globe/example/img/earth-topology.png',
-    backgroundImageUrl: '//unpkg.com/three-globe/example/img/night-sky.png',
+    backgroundImageUrl: null,
     enableAtmosphere: true,
     atmosphereColor: '#3a228a',
-    atmosphereAltitude: 0.15
+    atmosphereAltitude: 0.25
   }), []);
 
   const handlePointClick = useCallback((point: DataPoint, coords: { x: number, y: number } | null) => {
@@ -317,7 +278,12 @@ function App() {
   }, []);
 
   return (
-    <div ref={dashboardRef} style={{ width: '100vw', height: '100vh', position: 'relative', background: '#000011' }}>
+    <div ref={dashboardRef} style={{ 
+      width: '100vw', 
+      height: '100vh', 
+      position: 'relative', 
+      background: 'radial-gradient(circle at 50% 50%, #1e3a8a 0%, #02040a 50%, #02040a 100%)'
+    }}>
       {isAvatarModalOpen && (
         <div
           onClick={() => setIsAvatarModalOpen(false)}
@@ -342,70 +308,22 @@ function App() {
         getScreenCoords={(fn) => { getScreenCoordsRef.current = fn; }}
       />
       
-      <div style={{
-        position: 'absolute',
-        top: '16px',
-        left: '16px',
-        right: '16px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '16px',
-        flexWrap: 'wrap',
-        zIndex: 40
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ fontSize: '16px', fontWeight: 700, color: '#fff', letterSpacing: '0.4px' }}>
-            {SITE_NAME}
-          </div>
-          <div style={{ fontSize: '12px', letterSpacing: '2px', color: '#aab2d6' }}>
-            LIVE TRAFFIC
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button
-            onClick={() => setIsAvatarModalOpen((prev) => !prev)}
-            style={{
-              width: '34px',
-              height: '34px',
-              borderRadius: '50%',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              background: 'rgba(15, 18, 32, 0.7)',
-              padding: 0,
-              overflow: 'hidden',
-              cursor: 'pointer',
-              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-              boxShadow: isAvatarModalOpen ? '0 0 0 2px rgba(122, 162, 255, 0.6)' : 'none'
-            }}
-          >
-            <img src={headerAvatarUrl} alt="Avatar style" style={{ width: '100%', height: '100%' }} />
-          </button>
-
-          <button
-            onClick={handleToggleFullscreen}
-            style={{
-              padding: '8px 12px',
-              borderRadius: '10px',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              background: 'rgba(15, 18, 32, 0.7)',
-              color: '#e0e6ff',
-              fontSize: '12px',
-              letterSpacing: '0.4px',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-          </button>
-        </div>
-      </div>
+      <Dashboard 
+        visitors={points as VisitorData[]}
+        siteName={SITE_NAME}
+        avatarUrl={headerAvatarUrl}
+        onAvatarClick={() => setIsAvatarModalOpen(true)}
+        isFullscreen={isFullscreen}
+        onToggleFullscreen={handleToggleFullscreen}
+        onRefresh={handleAddVisitor}
+      />
 
       {isAvatarModalOpen && (
         <div style={{
           position: 'absolute',
-          top: '64px',
-          right: '16px',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
           width: '300px',
           maxWidth: '80vw',
           background: 'rgba(20, 20, 30, 0.92)',
@@ -413,8 +331,7 @@ function App() {
           padding: '16px',
           border: '1px solid rgba(255, 255, 255, 0.12)',
           boxShadow: '0 12px 30px rgba(0,0,0,0.5)',
-          zIndex: 50,
-          transform: 'translateY(0)',
+          zIndex: 60,
           transition: 'all 0.2s ease'
         }}>
           <div style={{
@@ -456,75 +373,10 @@ function App() {
         </div>
       )}
 
-      <div style={{
-        position: 'absolute',
-        top: '72px',
-        left: '16px',
-        right: '16px',
-        maxWidth: '520px',
-        background: 'rgba(20, 20, 30, 0.7)',
-        backdropFilter: 'blur(10px)',
-        borderRadius: '14px',
-        padding: '16px 18px',
-        color: '#e6e9ff',
-        fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
-        zIndex: 25
-      }}>
-        <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}>
-          Total number of visitors on site: {SITE_NAME}
-        </div>
-        <div style={{ fontSize: '12px', color: '#b6bdd9', marginBottom: '6px' }}>
-          Referrers: {trafficSource} + {totalVisitors}
-        </div>
-        <div style={{ fontSize: '12px', color: '#b6bdd9', marginBottom: '6px' }}>
-          Countries: {uniqueCountries} + {totalVisitors}
-        </div>
-        <div style={{ fontSize: '12px', color: '#b6bdd9' }}>
-          Devices: {uniqueDevices} + {totalVisitors}
-        </div>
-      </div>
-
-      <div style={{
-        position: 'absolute',
-        top: '152px',
-        right: '16px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-        zIndex: 25
-      }}>
-        <button onClick={handleAddVisitor} style={{
-          padding: '10px 14px',
-          borderRadius: '10px',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
-          background: 'rgba(15, 18, 32, 0.7)',
-          color: '#e0e6ff',
-          cursor: 'pointer',
-          transition: 'all 0.2s ease',
-          fontSize: '12px'
-        }}>
-          Add Test Visitor
-        </button>
-        <button onClick={handleClear} style={{
-          padding: '10px 14px',
-          borderRadius: '10px',
-          border: '1px solid rgba(255, 107, 107, 0.35)',
-          background: 'rgba(20, 20, 30, 0.7)',
-          color: '#ff9a9a',
-          cursor: 'pointer',
-          transition: 'all 0.2s ease',
-          fontSize: '12px'
-        }}>
-          Clear Data
-        </button>
-      </div>
-
       {/* Event Log with Glassmorphism */}
       <div style={{
         position: 'absolute',
-        top: '200px',
+        bottom: '20px',
         left: '20px',
         width: '300px',
         background: 'rgba(20, 20, 30, 0.6)',

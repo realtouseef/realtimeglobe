@@ -32,6 +32,7 @@ export interface VisitorData extends DataPoint {
   os: string;
   duration: string; // e.g. "2m 30s"
   currentUrl: string;
+  referrer: string;
   avatarUrl?: string;
 }
 
