@@ -1,73 +1,107 @@
-# React + TypeScript + Vite
+# RealtimeGlobe 🌍
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A stunning, interactive 3D globe visualization built with React, Three.js, and Globe.gl. This application simulates real-time visitor tracking with a beautiful, futuristic dashboard interface.
 
-Currently, two official plugins are available:
+![Project Status](https://img.shields.io/badge/status-active-success.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Features
 
-## React Compiler
+### 🌐 Interactive 3D Globe
+- **High-Performance Rendering**: Built on Three.js and Globe.gl for smooth 60fps animations.
+- **Dynamic Zoom & Controls**: Seamless zoom limits, auto-rotation, and interactive controls.
+- **Smart Labels**: City labels automatically appear when zooming in to reduce clutter.
+- **Atmospheric Effects**: Realistic atmosphere glow and background radial gradients.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🎨 Theming & Customization
+- **Multiple Themes**:
+  - **Minimal**: Clean, vector-based dark grey aesthetic.
+  - **Earth Night**: Satellite imagery of Earth at night.
+  - **Earth Day**: Realistic daytime satellite imagery.
+- **Avatar Personalization**: Choose from multiple avatar styles (e.g., Avataaars, Bottts, etc.) powered by DiceBear.
 
-## Expanding the ESLint configuration
+### 📊 Real-time Dashboard
+- **Live Visitor Tracking**: Visualizes user sessions as interactive markers on the globe.
+- **Analytics Cards**:
+  - **Referrers**: Top traffic sources (Google, Twitter, Direct, etc.).
+  - **Countries**: Visitor distribution by country.
+  - **Devices**: Desktop vs. Mobile usage breakdown.
+- **Visitor Details**: Click on any visitor marker to see detailed info including location, status, and avatar.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 💻 Modern UI/UX
+- **Glassmorphism Design**: Sleek, translucent UI elements with blur effects.
+- **Fullscreen Mode**: Immersive viewing experience.
+- **Responsive Layout**: Adapts to different screen sizes.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 🛠️ Tech Stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- **Framework**: [React 19](https://react.dev/)
+- **Build Tool**: [Vite](https://vitejs.dev/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **3D Library**: [Three.js](https://threejs.org/) & [Globe.gl](https://globe.gl/)
+- **Map Data**: [TopoJSON](https://github.com/topojson/topojson)
+- **Styling**: CSS Modules & Inline Styles
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js (v16 or higher)
+- npm or yarn
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/realtimeglobe.git
+   cd realtimeglobe
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+4. **Build for production**
+   ```bash
+   npm run build
+   ```
+
+## 📂 Project Structure
+
+```
+src/
+├── assets/          # Static assets
+├── components/      # React components
+│   ├── Dashboard.tsx    # Analytics panel & UI overlays
+│   ├── Globe.tsx        # 3D Globe wrapper
+│   └── GlobeControls.tsx # Camera controls
+├── data/            # Static data files (Cities, etc.)
+├── hooks/           # Custom React Hooks
+│   ├── useGlobe.ts      # Core globe logic & configuration
+│   └── useRealtimeData.ts # Data simulation/fetching
+├── types/           # TypeScript definitions
+└── utils/           # Helper functions (Geo calculations)
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🎮 Controls
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- **Left Click + Drag**: Rotate the globe.
+- **Scroll**: Zoom in/out.
+- **Click Marker**: View visitor details.
+- **Dashboard Icons**:
+  - 🔄 Refresh data
+  - ⛶ Toggle Fullscreen
+  - 👤 Change Avatar Style (Dropdown)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is licensed under the MIT License.
