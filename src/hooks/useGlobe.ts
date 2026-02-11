@@ -40,13 +40,15 @@ export const useGlobe = (config: GlobeConfig) => {
     // Set initial camera distance
     globe.pointOfView({ altitude: 2.5 });
 
-    // Handle Zoom for Fixed Size Elements
+    // Handle Zoom to scale avatars appropriately
+    // When zooming in (altitude decreases), we want the avatar to grow to match the growing dot
     const updateScale = () => {
         const altitude = globe.pointOfView().altitude;
-        // Base altitude is 2.5. If we are at 2.5, scale is 1.
-        // If we are at 1.25 (closer), objects appear 2x bigger, so we need scale 0.5.
-        // Scale = altitude / 2.5
-        const scale = Math.max(0.1, altitude / 2.5);
+        // Base altitude is 2.5. 
+        // We invert the relationship: as altitude gets smaller, scale gets larger.
+        // Scale = 2.5 / altitude
+        // Clamp minimum altitude to avoid infinity, and cap max scale
+        const scale = Math.min(10, 2.5 / Math.max(0.2, altitude));
         if (config.containerRef.current) {
             config.containerRef.current.style.setProperty('--avatar-scale', scale.toString());
         }
@@ -194,9 +196,7 @@ export const useGlobe = (config: GlobeConfig) => {
             .htmlAltitude(0) // Stick to surface
             .htmlElement((d: VisitorData) => {
                 const el = document.createElement('div');
-                // Use CSS variable for scaling to keep fixed size
                 // Center the avatar on the dot (lat/lng) but offset slightly to the right to be "next to" it
-                // We use a wrapper to handle the position and an inner div for the scale
                 el.innerHTML = `
                     <div style="
                         transform: translate(0%, -50%); /* Vertically center */
@@ -207,11 +207,12 @@ export const useGlobe = (config: GlobeConfig) => {
                         position: absolute;
                         left: 0;
                         top: 0;
+                        z-index: 10; /* Ensure on top */
                     ">
-                        <!-- Scale Wrapper -->
+                        <!-- Wrapper for positioning and scaling -->
                         <div style="
                             transform: scale(var(--avatar-scale, 1));
-                            transform-origin: left center; /* Scale from the left side so it stays attached */
+                            transform-origin: left center;
                             display: flex;
                             align-items: center;
                             padding-left: 4px; /* Small gap from the center point (where dot is) */
