@@ -74,6 +74,7 @@ export interface LabelData {
   color?: string;
   dotRadius?: number;
   altitude?: number;
+  type?: 'country' | 'city';
 }
 
 export interface GlobeProps {

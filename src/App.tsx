@@ -6,6 +6,8 @@ import { useRealtimeData } from './hooks/useRealtimeData';
 import { getGeoCentroid } from './utils/geo';
 import type { DataPoint, CountryData, LabelData, VisitorData } from './types/globe.types';
 
+import { CITIES as CITY_LOCATIONS } from './data/cities';
+
 const VISITOR_TYPES = {
   NEW: { color: '#00ff88', label: 'New Visitor' }, // Bright cyan/green
   ACTIVE: { color: '#0088ff', label: 'Active User' }, // Electric blue
@@ -66,12 +68,25 @@ function App() {
                 size: 0.6,
                 color: 'rgba(210, 210, 210, 0.75)',
                 dotRadius: 0,
-                altitude: 0.01
+                altitude: 0.01,
+                type: 'country'
             };
         }).filter((l: LabelData | null) => l !== null && l.label !== '');
          
-         console.log(`Generated ${countryLabels.length} country labels`);
-         setLabels(countryLabels as LabelData[]);
+         // Create city labels
+         const cityLabels: LabelData[] = CITY_LOCATIONS.map(city => ({
+             lat: city.lat,
+             lng: city.lng,
+             label: city.name,
+             size: 0.5,
+             color: 'rgba(255, 255, 255, 0.9)',
+             dotRadius: 0.3,
+             altitude: 0.005,
+             type: 'city'
+         }));
+
+         console.log(`Generated ${countryLabels.length} country labels and ${cityLabels.length} city labels`);
+         setLabels([...countryLabels, ...cityLabels]);
       });
   }, []);
 

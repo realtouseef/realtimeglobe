@@ -7,6 +7,7 @@ export const useGlobe = (config: GlobeConfig) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const globeRef = useRef<any>(null);
   const [isReady, setIsReady] = useState(false);
+  const isZoomedInRef = useRef<boolean | null>(null);
 
   useEffect(() => {
     if (!config.containerRef.current) return;
@@ -49,8 +50,39 @@ export const useGlobe = (config: GlobeConfig) => {
         // Scale = 2.5 / altitude
         // Clamp minimum altitude to avoid infinity, and cap max scale
         const scale = Math.min(10, 2.5 / Math.max(0.2, altitude));
+        
+        const isZoomedIn = altitude < 1.2;
+
         if (config.containerRef.current) {
             config.containerRef.current.style.setProperty('--avatar-scale', scale.toString());
+            
+            // Toggle zoomed-in class for city labels
+            if (isZoomedIn) {
+                config.containerRef.current.classList.add('zoomed-in');
+            } else {
+                config.containerRef.current.classList.remove('zoomed-in');
+            }
+        }
+
+        // Update label size based on zoom
+        // Show city labels when altitude is low (< 1.2)
+        // Only update if state changed to prevent performance issues
+        if (isZoomedIn !== isZoomedInRef.current) {
+            isZoomedInRef.current = isZoomedIn;
+            globe.labelSize((d: LabelData) => {
+                if (d.type === 'city') {
+                    return isZoomedIn ? (d.size || 0.5) : 0;
+                }
+                return d.size || 0.6;
+            });
+            
+            // Also toggle dot radius for cities so they disappear when zoomed out
+            globe.labelDotRadius((d: LabelData) => {
+                if (d.type === 'city') {
+                    return isZoomedIn ? (d.dotRadius || 0.3) : 0;
+                }
+                return d.dotRadius || 0;
+            });
         }
     };
     
@@ -179,8 +211,7 @@ export const useGlobe = (config: GlobeConfig) => {
         .labelLat('lat')
         .labelLng('lng')
         .labelText('label')
-        .labelSize('size')
-        .labelDotRadius('dotRadius')
+        // labelSize and labelDotRadius are handled dynamically in updateScale
         .labelColor('color')
         .labelAltitude('altitude')
         .labelResolution(2);
@@ -229,10 +260,29 @@ export const useGlobe = (config: GlobeConfig) => {
                                 display: flex;
                                 align-items: center;
                                 justify-content: center;
+                                position: relative;
                             ">
                                 <img src="${d.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${d.label}`}" 
                                      style="width: 100%; height: 100%; object-fit: cover;" 
                                      alt="Avatar" />
+                            </div>
+                            
+                            <!-- City Label (Hidden by default, shown when zoomed in) -->
+                            <div class="city-label" style="
+                                margin-left: 8px;
+                                background: rgba(0, 0, 0, 0.7);
+                                padding: 2px 6px;
+                                border-radius: 4px;
+                                color: #fff;
+                                font-size: 12px;
+                                white-space: nowrap;
+                                font-family: sans-serif;
+                                border: 1px solid rgba(255, 255, 255, 0.3);
+                                opacity: 0;
+                                transition: opacity 0.3s ease;
+                                pointer-events: none;
+                            ">
+                                ${d.city || ''}
                             </div>
                         </div>
                     </div>

@@ -107,14 +107,21 @@ export const Globe = memo((props: GlobeProps) => {
   }, [isReady, globeRef, width, height]);
 
   return (
-    <div 
-      ref={containerRef} 
-      style={{ 
-        width: width ? `${width}px` : '100%', 
-        height: height ? `${height}px` : '100%',
-        position: 'relative',
-        overflow: 'hidden' 
-      }} 
-    />
+    <>
+        <style>{`
+            .zoomed-in .city-label {
+                opacity: 1 !important;
+            }
+        `}</style>
+        <div 
+          ref={containerRef} 
+          style={{ 
+            width: width ? `${width}px` : '100%', 
+            height: height ? `${height}px` : '100%',
+            position: 'relative',
+            overflow: 'hidden' 
+          }} 
+        />
+    </>
   );
 });
