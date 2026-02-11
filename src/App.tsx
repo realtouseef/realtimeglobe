@@ -4,7 +4,7 @@ import { Globe } from './components/Globe';
 import { GlobeControls } from './components/GlobeControls';
 import { useRealtimeData } from './hooks/useRealtimeData';
 import { getGeoCentroid } from './utils/geo';
-import type { DataPoint, ArcData, CountryData, LabelData, VisitorData } from './types/globe.types';
+import type { DataPoint, CountryData, LabelData, VisitorData } from './types/globe.types';
 
 const VISITOR_TYPES = {
   NEW: { color: '#00ff88', label: 'New Visitor' }, // Bright cyan/green
@@ -29,10 +29,8 @@ const randomCoords = () => ({
 function App() {
   const {
     points,
-    arcs,
     rings,
     addPoint,
-    addArc,
     clearAll,
     removePoint
   } = useRealtimeData();
@@ -49,7 +47,6 @@ function App() {
   };
 
   useEffect(() => {
-    // Fetch country data
     fetch('//unpkg.com/world-atlas/countries-110m.json')
       .then(res => res.json())
       .then(worldData => {
@@ -57,7 +54,6 @@ function App() {
         const countriesGeo = (topojson.feature(worldData, worldData.objects.countries) as any).features;
         setCountries(countriesGeo);
 
-        // Generate labels from countries
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const countryLabels: LabelData[] = countriesGeo.map((feature: any) => {
             const centroid = getGeoCentroid(feature);
@@ -110,31 +106,13 @@ function App() {
     addPoint(point);
     addLog(`New ${type.label} from ${point.city}, ${point.country}`);
 
-    // Occasionally add an arc from a previous point if available
-    if (points.length > 0 && Math.random() > 0.7) {
-        const prevPoint = points[Math.floor(Math.random() * points.length)];
-        const arc: ArcData = {
-            startLat: prevPoint.lat,
-            startLng: prevPoint.lng,
-            endLat: lat,
-            endLng: lng,
-            color: [prevPoint.color || '#ffffff', type.color],
-            altitude: 0.2 + Math.random() * 0.2,
-            strokeWidth: 1,
-            dashLength: 0.4,
-            dashGap: 0.2,
-            animationTime: 2000
-        };
-        addArc(arc);
-    }
-
     // Auto-remove after 60 seconds (handled by effect below or simple timeout here)
     // Using simple timeout for individual point management
     setTimeout(() => {
         removePoint(lat, lng);
     }, 60000);
 
-  }, [addPoint, addArc, points, removePoint]);
+  }, [addPoint, points, removePoint]);
 
   const handleClear = useCallback(() => {
     clearAll();
@@ -153,7 +131,7 @@ function App() {
     atmosphereAltitude: 0.15
   }), []);
 
-  const handlePointClick = useCallback((point: DataPoint, event: MouseEvent, coords: { x: number, y: number } | null) => {
+  const handlePointClick = useCallback((point: DataPoint, coords: { x: number, y: number } | null) => {
     if ('city' in point) {
         setSelectedVisitor(point as VisitorData);
         if (coords) {
@@ -203,7 +181,7 @@ function App() {
         config={globeConfig}
         points={points} 
         htmlElements={points} // Add this line to render avatars
-        arcs={arcs}
+        arcs={[]} // Removed arcs
         rings={rings}
         countries={countries}
         labels={labels}

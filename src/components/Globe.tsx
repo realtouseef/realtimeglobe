@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, memo } from 'react';
+import { useRef, useEffect, memo } from 'react';
 import { useGlobe } from '../hooks/useGlobe';
 import type { GlobeProps } from '../types/globe.types';
 
