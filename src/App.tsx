@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import * as topojson from 'topojson-client';
 import { Globe } from './components/Globe';
-import { GlobeControls } from './components/GlobeControls';
 import { useRealtimeData } from './hooks/useRealtimeData';
 import { getGeoCentroid } from './utils/geo';
 import type { DataPoint, CountryData, LabelData, VisitorData } from './types/globe.types';
@@ -54,6 +53,7 @@ const DICEBEAR_STYLES = [
   'thumbs',
   'toon-head'
 ];
+const SITE_NAME = 'realtimeglobe';
 
 // Helper to generate random coordinates (weighted slightly towards populated areas roughly)
 // For simplicity we still use random, but we could improve this later
@@ -78,24 +78,27 @@ function App() {
   const [visitorCoords, setVisitorCoords] = useState<{x: number, y: number} | null>(null);
   const getScreenCoordsRef = useRef<((lat: number, lng: number, altitude?: number) => { x: number, y: number } | null) | null>(null);
   const [avatarStyle, setAvatarStyle] = useState('avataaars');
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const dashboardRef = useRef<HTMLDivElement>(null);
 
   const addLog = (message: string) => {
     setLogs(prev => [message, ...prev].slice(0, 20)); // Keep last 20 logs
   };
 
-  const avatarOptions = useMemo(() => (
-    DICEBEAR_STYLES.map((style) => ({
-      value: style,
-      label: style
-        .split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ')
-    }))
-  ), []);
-
   const createDiceBearUrl = useCallback((style: string, seed: string) => (
     `https://api.dicebear.com/7.x/${style}/svg?seed=${encodeURIComponent(seed)}`
   ), []);
+
+  const trafficSource = useMemo(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const utmSource = params.get('utm_source');
+      return utmSource && utmSource.trim().length > 0 ? utmSource.trim() : 'direct';
+    } catch {
+      return 'direct';
+    }
+  }, []);
 
   useEffect(() => {
     fetch('//unpkg.com/world-atlas/countries-110m.json')
@@ -194,6 +197,17 @@ function App() {
     }))
   ), [points, avatarStyle, createDiceBearUrl]);
 
+  const avatarPreviewItems = useMemo(() => (
+    DICEBEAR_STYLES.map((style) => ({
+      style,
+      url: createDiceBearUrl(style, SITE_NAME)
+    }))
+  ), [createDiceBearUrl]);
+
+  const headerAvatarUrl = useMemo(() => (
+    createDiceBearUrl(avatarStyle, SITE_NAME)
+  ), [avatarStyle, createDiceBearUrl]);
+
   const selectedAvatarUrl = useMemo(() => {
     if (!selectedVisitor) return '';
     return createDiceBearUrl(
@@ -201,6 +215,40 @@ function App() {
       selectedVisitor.label || `${selectedVisitor.lat.toFixed(2)}-${selectedVisitor.lng.toFixed(2)}`
     );
   }, [selectedVisitor, avatarStyle, createDiceBearUrl]);
+
+  const totalVisitors = points.length;
+
+  const uniqueCountries = useMemo(() => {
+    const countrySet = new Set<string>();
+    points.forEach((point) => {
+      if ('country' in point && point.country) {
+        countrySet.add(point.country);
+      }
+    });
+    return countrySet.size;
+  }, [points]);
+
+  const uniqueDevices = useMemo(() => {
+    const deviceSet = new Set<string>();
+    points.forEach((point) => {
+      if ('device' in point && point.device) {
+        deviceSet.add(point.device);
+      }
+    });
+    return deviceSet.size;
+  }, [points]);
+
+  const handleToggleFullscreen = useCallback(async () => {
+    try {
+      if (!document.fullscreenElement && dashboardRef.current) {
+        await dashboardRef.current.requestFullscreen();
+      } else if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      }
+    } catch {
+      setLogs(prev => ['Fullscreen unavailable in this browser', ...prev].slice(0, 20));
+    }
+  }, []);
 
   const globeConfig = useMemo(() => ({
     enableAutoRotate: false,
@@ -258,13 +306,35 @@ function App() {
     setVisitorCoords(null);
   }, []);
 
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
   return (
-    <div style={{ width: '100vw', height: '100vh', position: 'relative', background: '#000011' }}>
+    <div ref={dashboardRef} style={{ width: '100vw', height: '100vh', position: 'relative', background: '#000011' }}>
+      {isAvatarModalOpen && (
+        <div
+          onClick={() => setIsAvatarModalOpen(false)}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.25)',
+            zIndex: 30
+          }}
+        />
+      )}
+
       <Globe 
         config={globeConfig}
         points={points} 
         htmlElements={htmlElements}
-        arcs={[]} // Removed arcs
+        arcs={[]}
         rings={rings}
         countries={countries}
         labels={labels}
@@ -272,19 +342,189 @@ function App() {
         getScreenCoords={(fn) => { getScreenCoordsRef.current = fn; }}
       />
       
-      <GlobeControls 
-        onAddPoint={handleAddVisitor}
-        onAddArc={() => {}} // Disabled manual arc adding for now to keep it automated
-        onClear={handleClear}
-        avatarStyle={avatarStyle}
-        avatarOptions={avatarOptions}
-        onAvatarStyleChange={setAvatarStyle}
-      />
+      <div style={{
+        position: 'absolute',
+        top: '16px',
+        left: '16px',
+        right: '16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '16px',
+        flexWrap: 'wrap',
+        zIndex: 40
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ fontSize: '16px', fontWeight: 700, color: '#fff', letterSpacing: '0.4px' }}>
+            {SITE_NAME}
+          </div>
+          <div style={{ fontSize: '12px', letterSpacing: '2px', color: '#aab2d6' }}>
+            LIVE TRAFFIC
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button
+            onClick={() => setIsAvatarModalOpen((prev) => !prev)}
+            style={{
+              width: '34px',
+              height: '34px',
+              borderRadius: '50%',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              background: 'rgba(15, 18, 32, 0.7)',
+              padding: 0,
+              overflow: 'hidden',
+              cursor: 'pointer',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              boxShadow: isAvatarModalOpen ? '0 0 0 2px rgba(122, 162, 255, 0.6)' : 'none'
+            }}
+          >
+            <img src={headerAvatarUrl} alt="Avatar style" style={{ width: '100%', height: '100%' }} />
+          </button>
+
+          <button
+            onClick={handleToggleFullscreen}
+            style={{
+              padding: '8px 12px',
+              borderRadius: '10px',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              background: 'rgba(15, 18, 32, 0.7)',
+              color: '#e0e6ff',
+              fontSize: '12px',
+              letterSpacing: '0.4px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+          </button>
+        </div>
+      </div>
+
+      {isAvatarModalOpen && (
+        <div style={{
+          position: 'absolute',
+          top: '64px',
+          right: '16px',
+          width: '300px',
+          maxWidth: '80vw',
+          background: 'rgba(20, 20, 30, 0.92)',
+          borderRadius: '14px',
+          padding: '16px',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+          boxShadow: '0 12px 30px rgba(0,0,0,0.5)',
+          zIndex: 50,
+          transform: 'translateY(0)',
+          transition: 'all 0.2s ease'
+        }}>
+          <div style={{
+            fontSize: '12px',
+            color: '#8f97b7',
+            letterSpacing: '1px',
+            marginBottom: '12px'
+          }}>
+            AVATAR STYLE
+          </div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(48px, 1fr))',
+            gap: '10px'
+          }}>
+            {avatarPreviewItems.map((item) => (
+              <button
+                key={item.style}
+                onClick={() => {
+                  setAvatarStyle(item.style);
+                  setIsAvatarModalOpen(false);
+                }}
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '14px',
+                  border: item.style === avatarStyle ? '2px solid rgba(122, 162, 255, 0.9)' : '1px solid rgba(255, 255, 255, 0.12)',
+                  background: 'rgba(12, 14, 24, 0.8)',
+                  padding: 0,
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s ease, border-color 0.2s ease'
+                }}
+              >
+                <img src={item.url} alt={item.style} style={{ width: '100%', height: '100%' }} />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div style={{
+        position: 'absolute',
+        top: '72px',
+        left: '16px',
+        right: '16px',
+        maxWidth: '520px',
+        background: 'rgba(20, 20, 30, 0.7)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '14px',
+        padding: '16px 18px',
+        color: '#e6e9ff',
+        fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
+        zIndex: 25
+      }}>
+        <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}>
+          Total number of visitors on site: {SITE_NAME}
+        </div>
+        <div style={{ fontSize: '12px', color: '#b6bdd9', marginBottom: '6px' }}>
+          Referrers: {trafficSource} + {totalVisitors}
+        </div>
+        <div style={{ fontSize: '12px', color: '#b6bdd9', marginBottom: '6px' }}>
+          Countries: {uniqueCountries} + {totalVisitors}
+        </div>
+        <div style={{ fontSize: '12px', color: '#b6bdd9' }}>
+          Devices: {uniqueDevices} + {totalVisitors}
+        </div>
+      </div>
+
+      <div style={{
+        position: 'absolute',
+        top: '152px',
+        right: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        zIndex: 25
+      }}>
+        <button onClick={handleAddVisitor} style={{
+          padding: '10px 14px',
+          borderRadius: '10px',
+          border: '1px solid rgba(255, 255, 255, 0.15)',
+          background: 'rgba(15, 18, 32, 0.7)',
+          color: '#e0e6ff',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          fontSize: '12px'
+        }}>
+          Add Test Visitor
+        </button>
+        <button onClick={handleClear} style={{
+          padding: '10px 14px',
+          borderRadius: '10px',
+          border: '1px solid rgba(255, 107, 107, 0.35)',
+          background: 'rgba(20, 20, 30, 0.7)',
+          color: '#ff9a9a',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          fontSize: '12px'
+        }}>
+          Clear Data
+        </button>
+      </div>
 
       {/* Event Log with Glassmorphism */}
       <div style={{
         position: 'absolute',
-        top: '20px',
+        top: '200px',
         left: '20px',
         width: '300px',
         background: 'rgba(20, 20, 30, 0.6)',
