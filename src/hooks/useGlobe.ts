@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Globe from 'globe.gl';
 import * as THREE from 'three';
 import type { GlobeConfig, DataPoint, ArcData, RingData, CountryData, LabelData } from '../types/globe.types';
@@ -13,8 +13,7 @@ export const useGlobe = (config: GlobeConfig) => {
 
     // Initialize Globe
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const globe = (Globe as any)()
-      (config.containerRef.current)
+    const globe = (Globe as any)()(config.containerRef.current)
       .globeImageUrl(config.globeImageUrl === null ? null : (config.globeImageUrl || '//unpkg.com/three-globe/example/img/earth-night.jpg'))
       .bumpImageUrl(config.bumpImageUrl === null ? null : (config.bumpImageUrl || '//unpkg.com/three-globe/example/img/earth-topology.png'))
       .backgroundImageUrl(config.backgroundImageUrl === null ? null : (config.backgroundImageUrl || '//unpkg.com/three-globe/example/img/night-sky.png'))
@@ -23,6 +22,15 @@ export const useGlobe = (config: GlobeConfig) => {
       .showAtmosphere(config.enableAtmosphere !== false)
       .atmosphereColor(config.atmosphereColor || '#3a228a')
       .atmosphereAltitude(config.atmosphereAltitude || 0.15);
+
+    // Optimize renderer
+    const renderer = globe.renderer();
+    if (renderer) {
+      // Limit pixel ratio to 2 to avoid performance issues on high-DPI screens
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      // Enable shadow map only if needed (not needed here)
+      renderer.shadowMap.enabled = false;
+    }
 
     if (config.enableAutoRotate) {
       globe.controls().autoRotate = true;
@@ -49,9 +57,12 @@ export const useGlobe = (config: GlobeConfig) => {
     dirLight2.position.set(-50, -50, 50);
     scene.add(dirLight2);
 
-
     globeRef.current = globe;
-    setIsReady(true);
+    
+    // Use setTimeout to avoid synchronous state update in effect
+    setTimeout(() => {
+        setIsReady(true);
+    }, 0);
 
     const handleResize = () => {
         if (config.containerRef.current) {
@@ -60,26 +71,36 @@ export const useGlobe = (config: GlobeConfig) => {
         }
     };
     
-    window.addEventListener('resize', handleResize);
+    // Debounce resize to prevent excessive updates
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let resizeTimeout: any;
+    const debouncedResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(handleResize, 100);
+    };
+    
+    window.addEventListener('resize', debouncedResize);
     // Initial resize
     handleResize();
 
     return () => {
-      window.removeEventListener('resize', handleResize);
-      if (globeRef.current) {
-          const renderer = globe.renderer();
-          if (renderer) {
-              renderer.dispose();
-          }
-          if (config.containerRef.current) {
-            config.containerRef.current.innerHTML = ''; // Clear container
-          }
+      window.removeEventListener('resize', debouncedResize);
+      clearTimeout(resizeTimeout);
+      const renderer = globe.renderer();
+      if (renderer) {
+          renderer.dispose();
+          // Also dispose controls to prevent memory leaks
+          if (globe.controls()) globe.controls().dispose();
       }
+      if (config.containerRef.current) {
+        config.containerRef.current.innerHTML = ''; // Clear container
+      }
+      globeRef.current = null;
     };
   }, [config.containerRef]); // Only run once on mount when ref is available
 
-  // Update methods
-  const updatePoints = (points: DataPoint[]) => {
+  // Memoize update functions to prevent unnecessary re-renders
+  const updatePoints = useCallback((points: DataPoint[]) => {
     if (globeRef.current) {
       globeRef.current
         .pointsData(points)
@@ -90,9 +111,9 @@ export const useGlobe = (config: GlobeConfig) => {
         .pointRadius('size')
         .pointLabel('label');
     }
-  };
+  }, []);
 
-  const updateArcs = (arcs: ArcData[]) => {
+  const updateArcs = useCallback((arcs: ArcData[]) => {
     if (globeRef.current) {
       globeRef.current
         .arcsData(arcs)
@@ -107,9 +128,9 @@ export const useGlobe = (config: GlobeConfig) => {
         .arcDashGap('dashGap')
         .arcDashAnimateTime('animationTime');
     }
-  };
+  }, []);
 
-  const updateRings = (rings: RingData[]) => {
+  const updateRings = useCallback((rings: RingData[]) => {
     if (globeRef.current) {
       globeRef.current
         .ringsData(rings)
@@ -120,9 +141,9 @@ export const useGlobe = (config: GlobeConfig) => {
         .ringRepeatPeriod('repeatPeriod')
         .ringColor('color');
     }
-  };
+  }, []);
 
-  const updateCountries = (countries: CountryData[]) => {
+  const updateCountries = useCallback((countries: CountryData[]) => {
     if (globeRef.current) {
       globeRef.current
         .polygonsData(countries)
@@ -131,9 +152,9 @@ export const useGlobe = (config: GlobeConfig) => {
         .polygonStrokeColor(() => 'rgba(255, 255, 255, 0.15)') // Subtle borders
         .polygonLabel(() => ''); // Disable hover label as we use static labels now
     }
-  };
+  }, []);
 
-  const updateLabels = (labels: LabelData[]) => {
+  const updateLabels = useCallback((labels: LabelData[]) => {
     if (globeRef.current) {
       globeRef.current
         .labelsData(labels)
@@ -146,10 +167,10 @@ export const useGlobe = (config: GlobeConfig) => {
         .labelAltitude('altitude')
         .labelResolution(2);
     }
-  };
+  }, []);
 
   return {
-    globe: globeRef.current,
+    globeRef,
     isReady,
     updatePoints,
     updateArcs,

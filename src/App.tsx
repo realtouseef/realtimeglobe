@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import * as topojson from 'topojson-client';
 import { Globe } from './components/Globe';
 import { GlobeControls } from './components/GlobeControls';
@@ -32,7 +32,6 @@ function App() {
     removePoint
   } = useRealtimeData();
 
-  const [isRotating, setIsRotating] = useState(true);
   const [logs, setLogs] = useState<string[]>([]);
   const [countries, setCountries] = useState<CountryData[]>([]);
   const [labels, setLabels] = useState<LabelData[]>([]);
@@ -136,50 +135,38 @@ function App() {
     addLog('Cleared all data');
   }, [clearAll]);
 
-  const handleToggleRotation = useCallback(() => {
-    setIsRotating(prev => !prev);
-    addLog(`Rotation ${!isRotating ? 'enabled' : 'disabled'}`);
-  }, [isRotating]);
+  const globeConfig = useMemo(() => ({
+    enableAutoRotate: false,
+    autoRotateSpeed: 0.5,
+    backgroundColor: '#000011',
+    globeImageUrl: '//unpkg.com/three-globe/example/img/earth-night.jpg',
+    bumpImageUrl: '//unpkg.com/three-globe/example/img/earth-topology.png',
+    backgroundImageUrl: '//unpkg.com/three-globe/example/img/night-sky.png',
+    enableAtmosphere: true,
+    atmosphereColor: '#3a228a',
+    atmosphereAltitude: 0.15
+  }), []);
 
-  // Simulate real-time data
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (points.length < 100) { // Limit total visible points
-        handleAddVisitor();
-      }
-    }, 2000); // New visitor every 2 seconds
-
-    return () => clearInterval(interval);
-  }, [handleAddVisitor, points.length]);
+  const handlePointClick = useCallback((point: DataPoint) => {
+    addLog(`Clicked: ${point.label}`);
+  }, []);
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative', background: '#000011' }}>
       <Globe 
-        config={{
-          enableAutoRotate: isRotating,
-          autoRotateSpeed: 0.5,
-          backgroundColor: '#000011',
-          globeImageUrl: '//unpkg.com/three-globe/example/img/earth-night.jpg',
-          bumpImageUrl: '//unpkg.com/three-globe/example/img/earth-topology.png',
-          backgroundImageUrl: '//unpkg.com/three-globe/example/img/night-sky.png',
-          enableAtmosphere: true,
-          atmosphereColor: '#3a228a',
-          atmosphereAltitude: 0.15
-        }}
+        config={globeConfig}
         points={points}
         arcs={arcs}
         rings={rings}
         countries={countries}
         labels={labels}
-        onPointClick={(point) => addLog(`Clicked: ${point.label}`)}
+        onPointClick={handlePointClick}
       />
       
       <GlobeControls 
         onAddPoint={handleAddVisitor}
         onAddArc={() => {}} // Disabled manual arc adding for now to keep it automated
         onClear={handleClear}
-        onToggleRotation={handleToggleRotation}
-        isRotating={isRotating}
       />
 
       {/* Event Log with Glassmorphism */}

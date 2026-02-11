@@ -1,8 +1,8 @@
-import { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, memo } from 'react';
 import { useGlobe } from '../hooks/useGlobe';
 import type { GlobeProps } from '../types/globe.types';
 
-export const Globe = ({
+export const Globe = memo(({
   config = {},
   points = [],
   arcs = [],
@@ -16,7 +16,7 @@ export const Globe = ({
 }: GlobeProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   
-  const { globe, isReady, updatePoints, updateArcs, updateRings, updateCountries, updateLabels } = useGlobe({
+  const { globeRef, isReady, updatePoints, updateArcs, updateRings, updateCountries, updateLabels } = useGlobe({
     containerRef,
     ...config
   });
@@ -54,24 +54,24 @@ export const Globe = ({
 
   // Handle callbacks
   useEffect(() => {
-    if (isReady && globe) {
+    if (isReady && globeRef.current) {
       if (onPointClick) {
-        globe.onPointClick(onPointClick);
+        globeRef.current.onPointClick(onPointClick);
       }
       
       if (onGlobeReady) {
         onGlobeReady();
       }
     }
-  }, [isReady, globe, onPointClick, onGlobeReady]);
+  }, [isReady, globeRef, onPointClick, onGlobeReady]);
 
   // Handle size updates if props change
   useEffect(() => {
-      if (isReady && globe && (width || height)) {
-          if (width) globe.width(width);
-          if (height) globe.height(height);
+      if (isReady && globeRef.current && (width || height)) {
+          if (width) globeRef.current.width(width);
+          if (height) globeRef.current.height(height);
       }
-  }, [isReady, globe, width, height]);
+  }, [isReady, globeRef, width, height]);
 
   return (
     <div 
@@ -84,4 +84,4 @@ export const Globe = ({
       }} 
     />
   );
-};
+});

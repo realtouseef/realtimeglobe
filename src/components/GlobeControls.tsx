@@ -4,15 +4,11 @@ interface GlobeControlsProps {
   onAddPoint: () => void;
   onAddArc: () => void;
   onClear: () => void;
-  onToggleRotation: () => void;
-  isRotating: boolean;
 }
 
 export const GlobeControls: React.FC<GlobeControlsProps> = ({
   onAddPoint,
   onClear,
-  onToggleRotation,
-  isRotating
 }) => {
   return (
     <div style={{
@@ -45,10 +41,6 @@ export const GlobeControls: React.FC<GlobeControlsProps> = ({
       </button>
       
       <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '4px 0' }} />
-      
-      <button onClick={onToggleRotation} style={buttonStyle}>
-        {isRotating ? 'Pause Rotation' : 'Start Rotation'}
-      </button>
       
       <button onClick={onClear} style={{...buttonStyle, color: '#ff6b6b', border: '1px solid rgba(255, 107, 107, 0.3)'}}>
         Clear Data
