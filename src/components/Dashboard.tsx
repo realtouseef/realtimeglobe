@@ -1,16 +1,18 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { VisitorData } from '../types/globe.types';
 
 interface DashboardProps {
   visitors: VisitorData[];
   siteName: string;
   avatarUrl: string;
-  onAvatarClick: () => void;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
   onRefresh?: () => void;
   currentTheme: string;
   onThemeChange: (theme: 'minimal' | 'earth-night' | 'earth-day') => void;
+  avatarStyle: string;
+  onAvatarStyleChange: (style: string) => void;
+  avatarStyles: { style: string; url: string }[];
 }
 
 // Icons
@@ -163,13 +165,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
   visitors,
   siteName,
   avatarUrl,
-  onAvatarClick,
   isFullscreen,
   onToggleFullscreen,
   onRefresh,
   currentTheme,
-  onThemeChange
+  onThemeChange,
+  avatarStyle,
+  onAvatarStyleChange,
+  avatarStyles
 }) => {
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+
   // Aggregations
   const referrers = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -274,24 +280,89 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div style={{ display: 'flex', gap: '8px' }}>
           <HeaderButton icon={<Icons.Refresh />} onClick={onRefresh} />
           <HeaderButton icon={isFullscreen ? <Icons.Minimize /> : <Icons.Fullscreen />} onClick={onToggleFullscreen} />
-          <button 
-            onClick={onAvatarClick}
-            style={{
-              width: '36px',
-              height: '36px',
-              padding: 0,
-              border: '2px solid rgba(255,255,255,0.1)',
-              borderRadius: '12px',
-              overflow: 'hidden',
-              cursor: 'pointer',
-              background: 'transparent',
-              transition: 'transform 0.2s'
-            }}
-            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            <img src={avatarUrl} alt="Profile" style={{ width: '100%', height: '100%' }} />
-          </button>
+          
+          <div style={{ position: 'relative' }}>
+              <button 
+                onClick={() => setIsAvatarModalOpen(!isAvatarModalOpen)}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  padding: 0,
+                  border: '2px solid rgba(255,255,255,0.1)',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  background: 'transparent',
+                  transition: 'transform 0.2s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                <img src={avatarUrl} alt="Profile" style={{ width: '100%', height: '100%' }} />
+              </button>
+
+              {isAvatarModalOpen && (
+                <>
+                    <div 
+                        style={{ position: 'fixed', inset: 0, zIndex: 100, cursor: 'default' }} 
+                        onClick={() => setIsAvatarModalOpen(false)}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      top: 'calc(100% + 12px)',
+                      right: 0,
+                      width: '280px',
+                      background: 'rgba(20, 20, 30, 0.95)',
+                      borderRadius: '14px',
+                      padding: '16px',
+                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                      boxShadow: '0 12px 30px rgba(0,0,0,0.5)',
+                      zIndex: 101,
+                      backdropFilter: 'blur(10px)'
+                    }}>
+                      <div style={{
+                        fontSize: '11px',
+                        color: '#8f97b7',
+                        letterSpacing: '1px',
+                        marginBottom: '12px',
+                        fontWeight: 600,
+                        textTransform: 'uppercase'
+                      }}>
+                        Avatar Style
+                      </div>
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(44px, 1fr))',
+                        gap: '8px'
+                      }}>
+                        {avatarStyles.map((item) => (
+                          <button
+                            key={item.style}
+                            onClick={() => {
+                              onAvatarStyleChange(item.style);
+                              setIsAvatarModalOpen(false);
+                            }}
+                            style={{
+                              width: '44px',
+                              height: '44px',
+                              borderRadius: '12px',
+                              border: item.style === avatarStyle ? '2px solid #3B82F6' : '1px solid rgba(255, 255, 255, 0.1)',
+                              background: 'rgba(255, 255, 255, 0.05)',
+                              padding: 0,
+                              overflow: 'hidden',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease'
+                            }}
+                            title={item.style}
+                          >
+                            <img src={item.url} alt={item.style} style={{ width: '100%', height: '100%' }} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                </>
+              )}
+          </div>
         </div>
       </div>
 

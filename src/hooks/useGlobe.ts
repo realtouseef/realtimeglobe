@@ -403,24 +403,6 @@ export const useGlobe = (config: GlobeConfig) => {
                                      style="width: 100%; height: 100%; object-fit: cover;" 
                                      alt="Avatar" />
                             </div>
-                            
-                            <!-- City Label (Hidden by default, shown when zoomed in) -->
-                            <div class="city-label" style="
-                                margin-left: 8px;
-                                background: rgba(0, 0, 0, 0.7);
-                                padding: 2px 6px;
-                                border-radius: 4px;
-                                color: #fff;
-                                font-size: 12px;
-                                white-space: nowrap;
-                                font-family: sans-serif;
-                                border: 1px solid rgba(255, 255, 255, 0.3);
-                                opacity: 0;
-                                transition: opacity 0.3s ease;
-                                pointer-events: none;
-                            ">
-                                ${d.city || ''}
-                            </div>
                         </div>
                     </div>
                 `;

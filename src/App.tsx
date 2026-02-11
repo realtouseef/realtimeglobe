@@ -75,7 +75,7 @@ function App() {
   const [visitorCoords, setVisitorCoords] = useState<{x: number, y: number} | null>(null);
   const getScreenCoordsRef = useRef<((lat: number, lng: number, altitude?: number) => { x: number, y: number } | null) | null>(null);
   const [avatarStyle, setAvatarStyle] = useState('avataaars');
-  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<'minimal' | 'earth-night' | 'earth-day'>('minimal');
   const dashboardRef = useRef<HTMLDivElement>(null);
@@ -290,17 +290,7 @@ function App() {
       backgroundSize: '100% 100%, auto',
       backgroundRepeat: 'no-repeat, repeat'
     }}>
-      {isAvatarModalOpen && (
-        <div
-          onClick={() => setIsAvatarModalOpen(false)}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'rgba(0, 0, 0, 0.25)',
-            zIndex: 30
-          }}
-        />
-      )}
+
 
       <Globe 
         config={globeConfig}
@@ -318,68 +308,17 @@ function App() {
         visitors={points as VisitorData[]}
         siteName={SITE_NAME}
         avatarUrl={headerAvatarUrl}
-        onAvatarClick={() => setIsAvatarModalOpen(true)}
         isFullscreen={isFullscreen}
         onToggleFullscreen={handleToggleFullscreen}
         onRefresh={handleAddVisitor}
         currentTheme={currentTheme}
         onThemeChange={setCurrentTheme}
+        avatarStyle={avatarStyle}
+        onAvatarStyleChange={setAvatarStyle}
+        avatarStyles={avatarPreviewItems}
       />
 
-      {isAvatarModalOpen && (
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '300px',
-          maxWidth: '80vw',
-          background: 'rgba(20, 20, 30, 0.92)',
-          borderRadius: '14px',
-          padding: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
-          boxShadow: '0 12px 30px rgba(0,0,0,0.5)',
-          zIndex: 60,
-          transition: 'all 0.2s ease'
-        }}>
-          <div style={{
-            fontSize: '12px',
-            color: '#8f97b7',
-            letterSpacing: '1px',
-            marginBottom: '12px'
-          }}>
-            AVATAR STYLE
-          </div>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(48px, 1fr))',
-            gap: '10px'
-          }}>
-            {avatarPreviewItems.map((item) => (
-              <button
-                key={item.style}
-                onClick={() => {
-                  setAvatarStyle(item.style);
-                  setIsAvatarModalOpen(false);
-                }}
-                style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '14px',
-                  border: item.style === avatarStyle ? '2px solid rgba(122, 162, 255, 0.9)' : '1px solid rgba(255, 255, 255, 0.12)',
-                  background: 'rgba(12, 14, 24, 0.8)',
-                  padding: 0,
-                  overflow: 'hidden',
-                  cursor: 'pointer',
-                  transition: 'transform 0.2s ease, border-color 0.2s ease'
-                }}
-              >
-                <img src={item.url} alt={item.style} style={{ width: '100%', height: '100%' }} />
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+
 
       {/* Event Log with Glassmorphism */}
       <div style={{
