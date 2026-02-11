@@ -8,6 +8,7 @@ export const useGlobe = (config: GlobeConfig) => {
   const globeRef = useRef<any>(null);
   const [isReady, setIsReady] = useState(false);
   const isZoomedInRef = useRef<boolean | null>(null);
+  const zoomThreshold = 1.4;
 
   useEffect(() => {
     if (!config.containerRef.current) return;
@@ -51,7 +52,7 @@ export const useGlobe = (config: GlobeConfig) => {
         // Clamp minimum altitude to avoid infinity, and cap max scale
         const scale = Math.min(10, 2.5 / Math.max(0.2, altitude));
         
-        const isZoomedIn = altitude < 1.2;
+        const isZoomedIn = altitude < zoomThreshold;
 
         if (config.containerRef.current) {
             config.containerRef.current.style.setProperty('--avatar-scale', scale.toString());
@@ -206,12 +207,25 @@ export const useGlobe = (config: GlobeConfig) => {
 
   const updateLabels = useCallback((labels: LabelData[]) => {
     if (globeRef.current) {
+      const altitude = globeRef.current.pointOfView().altitude;
+      const isZoomedIn = altitude < zoomThreshold;
       globeRef.current
         .labelsData(labels)
         .labelLat('lat')
         .labelLng('lng')
         .labelText('label')
-        // labelSize and labelDotRadius are handled dynamically in updateScale
+        .labelSize((d: LabelData) => {
+            if (d.type === 'city') {
+                return isZoomedIn ? (d.size || 0.5) : 0;
+            }
+            return d.size || 0.6;
+        })
+        .labelDotRadius((d: LabelData) => {
+            if (d.type === 'city') {
+                return isZoomedIn ? (d.dotRadius || 0.3) : 0;
+            }
+            return d.dotRadius || 0;
+        })
         .labelColor('color')
         .labelAltitude('altitude')
         .labelResolution(2);

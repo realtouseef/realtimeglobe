@@ -20,6 +20,40 @@ const OS_LIST = ['Windows 11', 'macOS Sonoma', 'iOS 17', 'Android 14', 'Linux'];
 const DEVICES = ['Desktop', 'iPhone 15', 'Pixel 8', 'MacBook Pro', 'iPad Air'];
 const CITIES = ['New York', 'London', 'Tokyo', 'Paris', 'Berlin', 'Sydney', 'Singapore', 'Dubai', 'Toronto', 'Mumbai'];
 const COUNTRIES = ['USA', 'UK', 'Japan', 'France', 'Germany', 'Australia', 'Singapore', 'UAE', 'Canada', 'India'];
+const DICEBEAR_STYLES = [
+  'adventurer',
+  'adventurer-neutral',
+  'avataaars',
+  'avataaars-neutral',
+  'big-ears',
+  'big-ears-neutral',
+  'big-smile',
+  'bottts',
+  'bottts-neutral',
+  'croodles',
+  'croodles-neutral',
+  'dylan',
+  'fun-emoji',
+  'glass',
+  'icons',
+  'identicon',
+  'initials',
+  'lorelei',
+  'lorelei-neutral',
+  'micah',
+  'miniavs',
+  'minimalist',
+  'notionists',
+  'notionists-neutral',
+  'open-peeps',
+  'personas',
+  'pixel-art',
+  'pixel-art-neutral',
+  'rings',
+  'shapes',
+  'thumbs',
+  'toon-head'
+];
 
 // Helper to generate random coordinates (weighted slightly towards populated areas roughly)
 // For simplicity we still use random, but we could improve this later
@@ -43,10 +77,25 @@ function App() {
   const [selectedVisitor, setSelectedVisitor] = useState<VisitorData | null>(null);
   const [visitorCoords, setVisitorCoords] = useState<{x: number, y: number} | null>(null);
   const getScreenCoordsRef = useRef<((lat: number, lng: number, altitude?: number) => { x: number, y: number } | null) | null>(null);
+  const [avatarStyle, setAvatarStyle] = useState('avataaars');
 
   const addLog = (message: string) => {
     setLogs(prev => [message, ...prev].slice(0, 20)); // Keep last 20 logs
   };
+
+  const avatarOptions = useMemo(() => (
+    DICEBEAR_STYLES.map((style) => ({
+      value: style,
+      label: style
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+    }))
+  ), []);
+
+  const createDiceBearUrl = useCallback((style: string, seed: string) => (
+    `https://api.dicebear.com/7.x/${style}/svg?seed=${encodeURIComponent(seed)}`
+  ), []);
 
   useEffect(() => {
     fetch('//unpkg.com/world-atlas/countries-110m.json')
@@ -115,7 +164,8 @@ function App() {
       browser: BROWSERS[Math.floor(Math.random() * BROWSERS.length)],
       os: OS_LIST[Math.floor(Math.random() * OS_LIST.length)],
       duration: `${Math.floor(Math.random() * 10) + 1}m ${Math.floor(Math.random() * 60)}s`,
-      currentUrl: `https://example.com/${['products', 'blog', 'pricing', 'about'][Math.floor(Math.random() * 4)]}`
+      currentUrl: `https://example.com/${['products', 'blog', 'pricing', 'about'][Math.floor(Math.random() * 4)]}`,
+      avatarUrl: createDiceBearUrl(avatarStyle, `${type.label}-${lat.toFixed(2)}-${lng.toFixed(2)}`)
     };
     
     addPoint(point);
@@ -127,12 +177,30 @@ function App() {
         removePoint(lat, lng);
     }, 60000);
 
-  }, [addPoint, points, removePoint]);
+  }, [addPoint, points, removePoint, avatarStyle, createDiceBearUrl]);
 
   const handleClear = useCallback(() => {
     clearAll();
     addLog('Cleared all data');
   }, [clearAll]);
+
+  const htmlElements = useMemo(() => (
+    points.map((point) => ({
+      ...point,
+      avatarUrl: createDiceBearUrl(
+        avatarStyle,
+        point.label || `${point.lat.toFixed(2)}-${point.lng.toFixed(2)}`
+      )
+    }))
+  ), [points, avatarStyle, createDiceBearUrl]);
+
+  const selectedAvatarUrl = useMemo(() => {
+    if (!selectedVisitor) return '';
+    return createDiceBearUrl(
+      avatarStyle,
+      selectedVisitor.label || `${selectedVisitor.lat.toFixed(2)}-${selectedVisitor.lng.toFixed(2)}`
+    );
+  }, [selectedVisitor, avatarStyle, createDiceBearUrl]);
 
   const globeConfig = useMemo(() => ({
     enableAutoRotate: false,
@@ -195,7 +263,7 @@ function App() {
       <Globe 
         config={globeConfig}
         points={points} 
-        htmlElements={points} // Add this line to render avatars
+        htmlElements={htmlElements}
         arcs={[]} // Removed arcs
         rings={rings}
         countries={countries}
@@ -208,6 +276,9 @@ function App() {
         onAddPoint={handleAddVisitor}
         onAddArc={() => {}} // Disabled manual arc adding for now to keep it automated
         onClear={handleClear}
+        avatarStyle={avatarStyle}
+        avatarOptions={avatarOptions}
+        onAvatarStyleChange={setAvatarStyle}
       />
 
       {/* Event Log with Glassmorphism */}
@@ -306,7 +377,7 @@ function App() {
                     marginRight: '16px'
                 }}>
                     <img 
-                        src={selectedVisitor.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${selectedVisitor.label}`} 
+                        src={selectedAvatarUrl} 
                         alt="Avatar" 
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />

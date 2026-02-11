@@ -4,11 +4,17 @@ interface GlobeControlsProps {
   onAddPoint: () => void;
   onAddArc: () => void;
   onClear: () => void;
+  avatarStyle: string;
+  avatarOptions: { value: string; label: string }[];
+  onAvatarStyleChange: (style: string) => void;
 }
 
 export const GlobeControls: React.FC<GlobeControlsProps> = ({
   onAddPoint,
   onClear,
+  avatarStyle,
+  avatarOptions,
+  onAvatarStyleChange
 }) => {
   return (
     <div style={{
@@ -39,6 +45,23 @@ export const GlobeControls: React.FC<GlobeControlsProps> = ({
       <button onClick={onAddPoint} style={buttonStyle}>
         Add Test Visitor
       </button>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div style={{ fontSize: '11px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+          Avatar Style
+        </div>
+        <select
+          value={avatarStyle}
+          onChange={(e) => onAvatarStyleChange(e.target.value)}
+          style={selectStyle}
+        >
+          {avatarOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
       
       <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '4px 0' }} />
       
@@ -60,6 +83,17 @@ const buttonStyle: React.CSSProperties = {
   fontSize: '13px',
   fontWeight: 500,
   textAlign: 'left',
+  outline: 'none'
+};
+
+const selectStyle: React.CSSProperties = {
+  padding: '8px 10px',
+  borderRadius: '8px',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  background: 'rgba(255, 255, 255, 0.05)',
+  color: '#e0e0e0',
+  cursor: 'pointer',
+  fontSize: '12px',
   outline: 'none'
 };
 
