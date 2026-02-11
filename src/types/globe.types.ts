@@ -11,6 +11,7 @@ export interface GlobeConfig {
   atmosphereColor?: string;
   atmosphereAltitude?: number;
   enableAtmosphere?: boolean;
+  theme?: 'minimal' | 'earth-blue' | 'earth-night' | 'earth-day';
 }
 
 export interface DataPoint {

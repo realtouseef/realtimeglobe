@@ -77,6 +77,7 @@ function App() {
   const [avatarStyle, setAvatarStyle] = useState('avataaars');
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState<'minimal' | 'earth-night' | 'earth-day'>('minimal');
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   const addLog = (message: string) => {
@@ -215,13 +216,15 @@ function App() {
     enableAutoRotate: false,
     autoRotateSpeed: 0.5,
     backgroundColor: 'rgba(0,0,0,0)',
+    // theme will handle textures
     globeImageUrl: null,
     bumpImageUrl: '//unpkg.com/three-globe/example/img/earth-topology.png',
     backgroundImageUrl: null,
     enableAtmosphere: true,
     atmosphereColor: '#3a228a',
-    atmosphereAltitude: 0.25
-  }), []);
+    atmosphereAltitude: 0.25,
+    theme: currentTheme
+  }), [currentTheme]);
 
   const handlePointClick = useCallback((point: DataPoint, coords: { x: number, y: number } | null) => {
     if ('city' in point) {
@@ -282,7 +285,10 @@ function App() {
       width: '100vw', 
       height: '100vh', 
       position: 'relative', 
-      background: 'radial-gradient(circle at 50% 50%, #1e3a8a 0%, #02040a 50%, #02040a 100%)'
+      background: `radial-gradient(circle at 50% 50%, rgba(30, 58, 138, 0.6) 0%, rgba(30, 58, 138, 0) var(--glow-spread, 40%)), url('//unpkg.com/three-globe/example/img/night-sky.png')`,
+      backgroundColor: '#02040a',
+      backgroundSize: '100% 100%, auto',
+      backgroundRepeat: 'no-repeat, repeat'
     }}>
       {isAvatarModalOpen && (
         <div
@@ -316,6 +322,8 @@ function App() {
         isFullscreen={isFullscreen}
         onToggleFullscreen={handleToggleFullscreen}
         onRefresh={handleAddVisitor}
+        currentTheme={currentTheme}
+        onThemeChange={setCurrentTheme}
       />
 
       {isAvatarModalOpen && (

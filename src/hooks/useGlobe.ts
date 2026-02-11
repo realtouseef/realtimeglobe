@@ -41,6 +41,24 @@ export const useGlobe = (config: GlobeConfig) => {
     
     // Set initial camera distance
     globe.pointOfView({ altitude: 2.5 });
+    
+    // Limit zoom out
+    // Standard globe radius is 100.
+    // Altitude 2.5 corresponds to distance 350 (100 * (2.5 + 1))
+    // We want to limit zoom out to slightly more than this
+    if (globe.controls()) {
+        globe.controls().minDistance = 101; // Don't go inside earth
+        globe.controls().maxDistance = 400; // Limit zoom out
+    }
+    
+    // Set ocean color directly on the sphere material since we don't use an image
+    // This allows us to have a dark grey ocean instead of black
+    const globeMaterial = globe.globeMaterial();
+    if (globeMaterial) {
+        globeMaterial.color = new THREE.Color('#1a1a1a'); // Dark grey ocean
+        globeMaterial.opacity = 1;
+        globeMaterial.transparent = false;
+    }
 
     // Handle Zoom to scale avatars appropriately
     // When zooming in (altitude decreases), we want the avatar to grow to match the growing dot
@@ -56,6 +74,18 @@ export const useGlobe = (config: GlobeConfig) => {
 
         if (config.containerRef.current) {
             config.containerRef.current.style.setProperty('--avatar-scale', scale.toString());
+            
+            // Calculate glow spread based on altitude
+            // Zoomed in (alt < 2.5) -> constant glow (no shrinking)
+            // Zoomed out (alt >= 2.5) -> larger glow (expanding)
+            // Increased base size and expansion rate as requested
+            const minGlow = 60; // Increased from 45
+            const glowThreshold = 2.5;
+            const glowSpread = altitude < glowThreshold 
+                ? minGlow 
+                : Math.min(120, minGlow + (altitude - glowThreshold) * 40); // Increased max and rate
+            
+            config.containerRef.current.style.setProperty('--glow-spread', `${glowSpread}%`);
             
             // Toggle zoomed-in class for city labels
             if (isZoomedIn) {
@@ -109,6 +139,48 @@ export const useGlobe = (config: GlobeConfig) => {
 
     globeRef.current = globe;
     
+    // Apply theme-specific styles
+    // This runs on init and when theme changes
+    const applyTheme = () => {
+        const theme = config.theme || 'minimal';
+        const g = globeRef.current;
+        if (!g) return;
+
+        if (theme === 'minimal') {
+            g.globeImageUrl(null)
+             .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png');
+            
+            const mat = g.globeMaterial();
+            if (mat) {
+                mat.color = new THREE.Color('#1a1a1a');
+                mat.opacity = 1;
+                mat.transparent = false;
+            }
+            g.atmosphereColor('#3a228a');
+        } else if (theme === 'earth-night') {
+            g.globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+             .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png');
+            
+            const mat = g.globeMaterial();
+            if (mat) {
+                mat.color = new THREE.Color('#ffffff');
+            }
+            g.atmosphereColor('#3a228a');
+        } else if (theme === 'earth-day') {
+            g.globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+             .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png');
+            
+            const mat = g.globeMaterial();
+            if (mat) {
+                mat.color = new THREE.Color('#ffffff');
+            }
+            g.atmosphereColor('#1976d2');
+        }
+    };
+
+    // Apply theme immediately
+    applyTheme();
+    
     // Use setTimeout to avoid synchronous state update in effect
     setTimeout(() => {
         setIsReady(true);
@@ -148,6 +220,45 @@ export const useGlobe = (config: GlobeConfig) => {
       globeRef.current = null;
     };
   }, [config.containerRef]); // Only run once on mount when ref is available
+
+  // React to theme changes
+  useEffect(() => {
+    if (!globeRef.current) return;
+    
+    const theme = config.theme || 'minimal';
+    const g = globeRef.current;
+
+    if (theme === 'minimal') {
+        g.globeImageUrl(null)
+         .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png');
+        
+        const mat = g.globeMaterial();
+        if (mat) {
+            mat.color = new THREE.Color('#1a1a1a');
+            mat.opacity = 1;
+            mat.transparent = false;
+        }
+        g.atmosphereColor('#3a228a');
+    } else if (theme === 'earth-night') {
+        g.globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+         .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png');
+        
+        const mat = g.globeMaterial();
+        if (mat) {
+            mat.color = new THREE.Color('#ffffff');
+        }
+        g.atmosphereColor('#3a228a');
+    } else if (theme === 'earth-day') {
+        g.globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+         .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png');
+        
+        const mat = g.globeMaterial();
+        if (mat) {
+            mat.color = new THREE.Color('#ffffff');
+        }
+        g.atmosphereColor('#1976d2');
+    }
+  }, [config.theme]);
 
   // Memoize update functions to prevent unnecessary re-renders
   const updatePoints = useCallback((points: DataPoint[]) => {
@@ -196,14 +307,26 @@ export const useGlobe = (config: GlobeConfig) => {
 
   const updateCountries = useCallback((countries: CountryData[]) => {
     if (globeRef.current) {
-      globeRef.current
-        .polygonsData(countries)
-        .polygonCapColor(() => '#374151') // Dark grey for land
-        .polygonSideColor(() => 'rgba(0, 0, 0, 0.2)')
-        .polygonStrokeColor(() => '#111827') // Darker grey for borders
-        .polygonLabel(() => ''); // Disable hover label as we use static labels now
+      const theme = config.theme || 'minimal';
+      
+      globeRef.current.polygonsData(countries);
+
+      if (theme === 'minimal') {
+        globeRef.current
+          .polygonCapColor(() => '#2b2b2b') // Dark grey for land matching screenshot
+          .polygonSideColor(() => 'rgba(0, 0, 0, 0.2)')
+          .polygonStrokeColor(() => '#555555'); // Lighter grey for borders
+      } else {
+        // For image based themes, we make polygons transparent but keep subtle borders
+        globeRef.current
+          .polygonCapColor(() => 'rgba(0, 0, 0, 0)') 
+          .polygonSideColor(() => 'rgba(0, 0, 0, 0)')
+          .polygonStrokeColor(() => 'rgba(255, 255, 255, 0.1)'); // Very subtle borders
+      }
+      
+      globeRef.current.polygonLabel(() => ''); // Disable hover label
     }
-  }, []);
+  }, [config.theme]);
 
   const updateLabels = useCallback((labels: LabelData[]) => {
     if (globeRef.current) {

@@ -9,6 +9,8 @@ interface DashboardProps {
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
   onRefresh?: () => void;
+  currentTheme: string;
+  onThemeChange: (theme: 'minimal' | 'earth-night' | 'earth-day') => void;
 }
 
 // Icons
@@ -112,6 +114,51 @@ const StatPill: React.FC<{ icon: React.ReactNode; label: string; count?: number;
   </div>
 );
 
+const ThemeSelector: React.FC<{
+  current: string;
+  onChange: (theme: 'minimal' | 'earth-night' | 'earth-day') => void;
+}> = ({ current, onChange }) => (
+  <div style={{
+    background: 'rgba(255,255,255,0.05)',
+    padding: '4px',
+    borderRadius: '12px',
+    display: 'flex',
+    marginBottom: '24px',
+    gap: '4px'
+  }}>
+    {[
+      { id: 'minimal', label: 'Minimal' },
+      { id: 'earth-night', label: 'Night' },
+      { id: 'earth-day', label: 'Day' }
+    ].map(theme => (
+      <button
+        key={theme.id}
+        onClick={() => onChange(theme.id as any)}
+        style={{
+          flex: 1,
+          padding: '8px',
+          background: current === theme.id ? 'rgba(255,255,255,0.1)' : 'transparent',
+          border: 'none',
+          borderRadius: '8px',
+          color: current === theme.id ? '#fff' : '#888',
+          fontSize: '13px',
+          cursor: 'pointer',
+          transition: 'all 0.2s',
+          fontWeight: current === theme.id ? 600 : 400
+        }}
+        onMouseEnter={e => {
+            if (current !== theme.id) e.currentTarget.style.color = '#ccc';
+        }}
+        onMouseLeave={e => {
+            if (current !== theme.id) e.currentTarget.style.color = '#888';
+        }}
+      >
+        {theme.label}
+      </button>
+    ))}
+  </div>
+);
+
 export const Dashboard: React.FC<DashboardProps> = ({
   visitors,
   siteName,
@@ -119,7 +166,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onAvatarClick,
   isFullscreen,
   onToggleFullscreen,
-  onRefresh
+  onRefresh,
+  currentTheme,
+  onThemeChange
 }) => {
   // Aggregations
   const referrers = useMemo(() => {
@@ -199,64 +248,59 @@ export const Dashboard: React.FC<DashboardProps> = ({
         }
       `}</style>
 
-      {/* Header Row */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ 
-            width: '32px', height: '32px', 
-            background: 'rgba(59, 130, 246, 0.15)', 
-            borderRadius: '8px', 
-            display: 'flex', alignItems: 'center', justifyContent: 'center' 
+            width: '40px', 
+            height: '40px', 
+            background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)', 
+            borderRadius: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)'
           }}>
             <Icons.Logo />
           </div>
-          <div style={{ fontSize: '20px', fontWeight: 700, color: '#e0e0e0' }}>RealtimeGlobe</div>
-          <div style={{ fontSize: '13px', color: '#666', fontWeight: 600, letterSpacing: '0.5px', marginTop: '4px' }}>| REAL-TIME</div>
+          <div>
+            <h1 style={{ fontSize: '18px', fontWeight: '600', margin: 0, letterSpacing: '-0.5px' }}>{siteName}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00ff88', boxShadow: '0 0 8px #00ff88' }} />
+              <span style={{ fontSize: '12px', color: '#888' }}>Live</span>
+            </div>
+          </div>
         </div>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <HeaderButton icon={<Icons.Refresh />} onClick={onRefresh} />
+          <HeaderButton icon={isFullscreen ? <Icons.Minimize /> : <Icons.Fullscreen />} onClick={onToggleFullscreen} />
           <button 
             onClick={onAvatarClick}
             style={{
-              width: '36px', height: '36px', borderRadius: '50%', 
-              overflow: 'hidden', border: '2px solid rgba(255,255,255,0.1)',
-              padding: 0, cursor: 'pointer', background: 'transparent'
+              width: '36px',
+              height: '36px',
+              padding: 0,
+              border: '2px solid rgba(255,255,255,0.1)',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              cursor: 'pointer',
+              background: 'transparent',
+              transition: 'transform 0.2s'
             }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
           >
-            <img src={avatarUrl} alt="User" style={{ width: '100%', height: '100%' }} />
+            <img src={avatarUrl} alt="Profile" style={{ width: '100%', height: '100%' }} />
           </button>
-          <HeaderButton icon={<Icons.Refresh />} onClick={onRefresh} />
-          <HeaderButton 
-            icon={isFullscreen ? <Icons.Minimize /> : <Icons.Fullscreen />} 
-            onClick={onToggleFullscreen} 
-          />
         </div>
       </div>
 
-      {/* Status Row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', fontSize: '18px' }}>
-        <div style={{ width: '10px', height: '10px', background: '#5e9eff', borderRadius: '50%', boxShadow: '0 0 10px #5e9eff' }}></div>
-        <div style={{ fontWeight: 500 }}>
-          {visitors.length} visitors on
-        </div>
-        <div style={{ 
-          background: '#000', 
-          padding: '4px 8px', 
-          borderRadius: '6px', 
-          fontFamily: 'monospace', 
-          fontSize: '14px',
-          border: '1px solid rgba(255,255,255,0.2)'
-        }}>
-          &lt;/&gt; {siteName.toLowerCase()}
-        </div>
-        <div style={{ color: '#666', fontSize: '16px' }}>
-          (est. value: <span style={{ color: '#00ff88' }}>${(visitors.length * 0.6).toFixed(0)}</span>)
-        </div>
-      </div>
+      <div className="scroll-container" style={{ maxHeight: 'calc(80vh - 100px)', overflowY: 'auto' }}>
+        
+        {/* Theme Selector */}
+        <ThemeSelector current={currentTheme} onChange={onThemeChange} />
 
-      <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', marginBottom: '20px' }}></div>
-
-      {/* Stats Grid */}
+        {/* Stats Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '16px', alignItems: 'center' }}>
         {/* Referrers */}
         <div style={{ color: '#888', fontSize: '14px', fontWeight: 500 }}>Referrers</div>
@@ -299,6 +343,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           ))}
           {devices.length === 0 && <span style={{ color: '#444', fontSize: '13px' }}>Waiting for data...</span>}
         </div>
+      </div>
       </div>
     </div>
   );
