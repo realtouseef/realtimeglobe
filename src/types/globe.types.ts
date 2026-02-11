@@ -24,6 +24,18 @@ export interface DataPoint {
   customData?: any;
 }
 
+export interface VisitorData extends DataPoint {
+  city: string;
+  country: string;
+  device: string;
+  browser: string;
+  os: string;
+  duration: string; // e.g. "2m 30s"
+  currentUrl: string;
+  avatarUrl?: string;
+}
+
+
 export interface ArcData {
   startLat: number;
   startLng: number;
@@ -71,8 +83,11 @@ export interface GlobeProps {
   rings?: RingData[];
   countries?: CountryData[];
   labels?: LabelData[];
-  onPointClick?: (point: DataPoint, event: MouseEvent) => void;
+  htmlElements?: VisitorData[];
+  onPointClick?: (point: DataPoint, event: MouseEvent, coords: { x: number, y: number } | null) => void;
   onGlobeReady?: () => void;
   width?: number;
   height?: number;
+  // Expose getScreenCoords function to parent
+  getScreenCoords?: (fn: (lat: number, lng: number, altitude?: number) => { x: number, y: number } | null) => void;
 }

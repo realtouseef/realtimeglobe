@@ -1,17 +1,23 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import * as topojson from 'topojson-client';
 import { Globe } from './components/Globe';
 import { GlobeControls } from './components/GlobeControls';
 import { useRealtimeData } from './hooks/useRealtimeData';
 import { getGeoCentroid } from './utils/geo';
-import type { DataPoint, ArcData, RingData, CountryData, LabelData } from './types/globe.types';
+import type { DataPoint, ArcData, CountryData, LabelData, VisitorData } from './types/globe.types';
 
-// Constants for visitor types and colors
 const VISITOR_TYPES = {
   NEW: { color: '#00ff88', label: 'New Visitor' }, // Bright cyan/green
   ACTIVE: { color: '#0088ff', label: 'Active User' }, // Electric blue
   CONVERSION: { color: '#ffaa00', label: 'Conversion' } // Golden orange
 };
+
+// Mock data helpers
+const BROWSERS = ['Chrome', 'Firefox', 'Safari', 'Edge', 'Brave'];
+const OS_LIST = ['Windows 11', 'macOS Sonoma', 'iOS 17', 'Android 14', 'Linux'];
+const DEVICES = ['Desktop', 'iPhone 15', 'Pixel 8', 'MacBook Pro', 'iPad Air'];
+const CITIES = ['New York', 'London', 'Tokyo', 'Paris', 'Berlin', 'Sydney', 'Singapore', 'Dubai', 'Toronto', 'Mumbai'];
+const COUNTRIES = ['USA', 'UK', 'Japan', 'France', 'Germany', 'Australia', 'Singapore', 'UAE', 'Canada', 'India'];
 
 // Helper to generate random coordinates (weighted slightly towards populated areas roughly)
 // For simplicity we still use random, but we could improve this later
@@ -27,7 +33,6 @@ function App() {
     rings,
     addPoint,
     addArc,
-    addRing,
     clearAll,
     removePoint
   } = useRealtimeData();
@@ -35,6 +40,9 @@ function App() {
   const [logs, setLogs] = useState<string[]>([]);
   const [countries, setCountries] = useState<CountryData[]>([]);
   const [labels, setLabels] = useState<LabelData[]>([]);
+  const [selectedVisitor, setSelectedVisitor] = useState<VisitorData | null>(null);
+  const [visitorCoords, setVisitorCoords] = useState<{x: number, y: number} | null>(null);
+  const getScreenCoordsRef = useRef<((lat: number, lng: number, altitude?: number) => { x: number, y: number } | null) | null>(null);
 
   const addLog = (message: string) => {
     setLogs(prev => [message, ...prev].slice(0, 20)); // Keep last 20 logs
@@ -80,29 +88,27 @@ function App() {
     if (rand > 0.9) type = VISITOR_TYPES.CONVERSION;
     else if (rand > 0.6) type = VISITOR_TYPES.NEW;
 
-    const point: DataPoint = {
+    const randomIdx = Math.floor(Math.random() * CITIES.length);
+    
+    const point: VisitorData = {
       lat,
       lng,
       size: 0.4, // Small but visible
       color: type.color,
       label: `${type.label} (${lat.toFixed(1)}, ${lng.toFixed(1)})`,
       altitude: 0.02,
-      customData: { type: type.label, timestamp: Date.now() }
+      customData: { type: type.label, timestamp: Date.now() },
+      city: CITIES[randomIdx],
+      country: COUNTRIES[randomIdx],
+      device: DEVICES[Math.floor(Math.random() * DEVICES.length)],
+      browser: BROWSERS[Math.floor(Math.random() * BROWSERS.length)],
+      os: OS_LIST[Math.floor(Math.random() * OS_LIST.length)],
+      duration: `${Math.floor(Math.random() * 10) + 1}m ${Math.floor(Math.random() * 60)}s`,
+      currentUrl: `https://example.com/${['products', 'blog', 'pricing', 'about'][Math.floor(Math.random() * 4)]}`
     };
     
     addPoint(point);
-    addLog(`New ${type.label} from ${lat.toFixed(1)}, ${lng.toFixed(1)}`);
-
-    // Add a ring effect (Radar Pulse)
-    const ring: RingData = {
-      lat,
-      lng,
-      maxRadius: 4,
-      propagationSpeed: 2,
-      repeatPeriod: 800, // Fast pulse
-      color: type.color
-    };
-    addRing(ring);
+    addLog(`New ${type.label} from ${point.city}, ${point.country}`);
 
     // Occasionally add an arc from a previous point if available
     if (points.length > 0 && Math.random() > 0.7) {
@@ -128,7 +134,7 @@ function App() {
         removePoint(lat, lng);
     }, 60000);
 
-  }, [addPoint, addRing, addArc, points, removePoint]);
+  }, [addPoint, addArc, points, removePoint]);
 
   const handleClear = useCallback(() => {
     clearAll();
@@ -147,20 +153,62 @@ function App() {
     atmosphereAltitude: 0.15
   }), []);
 
-  const handlePointClick = useCallback((point: DataPoint) => {
-    addLog(`Clicked: ${point.label}`);
+  const handlePointClick = useCallback((point: DataPoint, event: MouseEvent, coords: { x: number, y: number } | null) => {
+    if ('city' in point) {
+        setSelectedVisitor(point as VisitorData);
+        if (coords) {
+            setVisitorCoords(coords);
+        } else if (getScreenCoordsRef.current) {
+            // Fallback if coords not passed directly (e.g. standard point click)
+            const screenCoords = getScreenCoordsRef.current(point.lat, point.lng, point.altitude);
+            setVisitorCoords(screenCoords);
+        }
+        addLog(`Viewing details for visitor from ${(point as VisitorData).city}`);
+    } else {
+        addLog(`Clicked: ${point.label}`);
+    }
+  }, []);
+
+  // Update coords on every frame if visitor is selected to keep it attached during rotation
+  useEffect(() => {
+    let animationFrameId: number;
+    
+    const updateCoords = () => {
+        if (selectedVisitor && getScreenCoordsRef.current) {
+            const coords = getScreenCoordsRef.current(selectedVisitor.lat, selectedVisitor.lng, selectedVisitor.altitude);
+            setVisitorCoords(coords);
+        }
+        animationFrameId = requestAnimationFrame(updateCoords);
+    };
+
+    if (selectedVisitor) {
+        updateCoords();
+    }
+
+    return () => {
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+        }
+    };
+  }, [selectedVisitor]);
+
+  const closeDetails = useCallback(() => {
+    setSelectedVisitor(null);
+    setVisitorCoords(null);
   }, []);
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative', background: '#000011' }}>
       <Globe 
         config={globeConfig}
-        points={points}
+        points={points} 
+        htmlElements={points} // Add this line to render avatars
         arcs={arcs}
         rings={rings}
         countries={countries}
         labels={labels}
         onPointClick={handlePointClick}
+        getScreenCoords={(fn) => { getScreenCoordsRef.current = fn; }}
       />
       
       <GlobeControls 
@@ -207,8 +255,114 @@ function App() {
           ))}
         </div>
       </div>
+
+      {/* Visitor Details Card */}
+      {selectedVisitor && visitorCoords && (
+        <div style={{
+            position: 'absolute',
+            top: visitorCoords.y,
+            left: visitorCoords.x,
+            transform: 'translate(-50%, -120%)', // Position above the dot
+            background: 'rgba(20, 20, 30, 0.9)',
+            backdropFilter: 'blur(16px)',
+            borderRadius: '16px',
+            padding: '24px',
+            width: '320px',
+            color: '#fff',
+            fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+            zIndex: 100,
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.8)',
+            animation: 'scaleIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            pointerEvents: 'auto'
+        }}>
+            {/* Connecting line to the dot */}
+            <div style={{
+                position: 'absolute',
+                bottom: '-10px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '0',
+                height: '0',
+                borderLeft: '10px solid transparent',
+                borderRight: '10px solid transparent',
+                borderTop: '10px solid rgba(20, 20, 30, 0.9)',
+                filter: 'drop-shadow(0 4px 4px rgba(0,0,0,0.5))'
+            }} />
+            <button 
+                onClick={closeDetails}
+                style={{
+                    position: 'absolute',
+                    top: '12px',
+                    right: '12px',
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#888',
+                    cursor: 'pointer',
+                    fontSize: '20px'
+                }}
+            >×</button>
+            
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+                <div style={{ 
+                    width: '64px', 
+                    height: '64px', 
+                    borderRadius: '50%', 
+                    overflow: 'hidden',
+                    border: `3px solid ${selectedVisitor.color}`,
+                    marginRight: '16px'
+                }}>
+                    <img 
+                        src={selectedVisitor.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${selectedVisitor.label}`} 
+                        alt="Avatar" 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                </div>
+                <div>
+                    <h2 style={{ margin: '0 0 4px 0', fontSize: '18px' }}>Visitor Details</h2>
+                    <div style={{ fontSize: '12px', color: '#aaa', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ 
+                            width: '8px', 
+                            height: '8px', 
+                            borderRadius: '50%', 
+                            background: '#00ff88', 
+                            marginRight: '6px' 
+                        }}></span>
+                        Online Now
+                    </div>
+                </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <DetailItem label="Location" value={`${selectedVisitor.city}, ${selectedVisitor.country}`} fullWidth />
+                <DetailItem label="Device" value={selectedVisitor.device} />
+                <DetailItem label="Browser" value={selectedVisitor.browser} />
+                <DetailItem label="OS" value={selectedVisitor.os} />
+                <DetailItem label="Time on Site" value={selectedVisitor.duration} />
+                <DetailItem label="Current Page" value={selectedVisitor.currentUrl} fullWidth isLink />
+            </div>
+        </div>
+      )}
     </div>
   );
 }
+
+// Helper component for details
+const DetailItem = ({ label, value, fullWidth = false, isLink = false }: { label: string, value: string, fullWidth?: boolean, isLink?: boolean }) => (
+    <div style={{ gridColumn: fullWidth ? 'span 2' : 'span 1' }}>
+        <div style={{ fontSize: '11px', color: '#888', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
+        <div style={{ 
+            fontSize: '14px', 
+            color: isLink ? '#4a9eff' : '#eee', 
+            whiteSpace: 'nowrap', 
+            overflow: 'hidden', 
+            textOverflow: 'ellipsis',
+            textDecoration: isLink ? 'underline' : 'none',
+            cursor: isLink ? 'pointer' : 'default'
+        }}>
+            {value}
+        </div>
+    </div>
+);
 
 export default App;

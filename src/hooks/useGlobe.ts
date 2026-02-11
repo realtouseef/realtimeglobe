@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import Globe from 'globe.gl';
 import * as THREE from 'three';
-import type { GlobeConfig, DataPoint, ArcData, RingData, CountryData, LabelData } from '../types/globe.types';
+import type { GlobeConfig, DataPoint, ArcData, RingData, CountryData, LabelData, VisitorData } from '../types/globe.types';
 
 export const useGlobe = (config: GlobeConfig) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,6 +39,21 @@ export const useGlobe = (config: GlobeConfig) => {
     
     // Set initial camera distance
     globe.pointOfView({ altitude: 2.5 });
+
+    // Handle Zoom for Fixed Size Elements
+    const updateScale = () => {
+        const altitude = globe.pointOfView().altitude;
+        // Base altitude is 2.5. If we are at 2.5, scale is 1.
+        // If we are at 1.25 (closer), objects appear 2x bigger, so we need scale 0.5.
+        // Scale = altitude / 2.5
+        const scale = Math.max(0.1, altitude / 2.5);
+        if (config.containerRef.current) {
+            config.containerRef.current.style.setProperty('--avatar-scale', scale.toString());
+        }
+    };
+    
+    globe.controls().addEventListener('change', updateScale);
+    updateScale(); // Initial call
 
     // Custom Lighting
     const scene = globe.scene();
@@ -107,9 +122,10 @@ export const useGlobe = (config: GlobeConfig) => {
         .pointLat('lat')
         .pointLng('lng')
         .pointColor('color')
-        .pointAltitude('altitude')
+        .pointAltitude(0.001) // Very close to surface
         .pointRadius('size')
-        .pointLabel('label');
+        .pointLabel('label')
+        .pointResolution(32); // Higher resolution for smoother circles
     }
   }, []);
 
@@ -169,6 +185,77 @@ export const useGlobe = (config: GlobeConfig) => {
     }
   }, []);
 
+  const updateHtmlElements = useCallback((elements: VisitorData[]) => {
+    if (globeRef.current) {
+        globeRef.current
+            .htmlElementsData(elements)
+            .htmlLat('lat')
+            .htmlLng('lng')
+            .htmlAltitude(0) // Stick to surface
+            .htmlElement((d: VisitorData) => {
+                const el = document.createElement('div');
+                // Use CSS variable for scaling to keep fixed size
+                // Center the avatar on the dot (lat/lng) but offset slightly to the right to be "next to" it
+                // We use a wrapper to handle the position and an inner div for the scale
+                el.innerHTML = `
+                    <div style="
+                        transform: translate(0%, -50%); /* Vertically center */
+                        pointer-events: auto;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                    ">
+                        <!-- Scale Wrapper -->
+                        <div style="
+                            transform: scale(var(--avatar-scale, 1));
+                            transform-origin: left center; /* Scale from the left side so it stays attached */
+                            display: flex;
+                            align-items: center;
+                            padding-left: 4px; /* Small gap from the center point (where dot is) */
+                        ">
+                            <!-- Avatar -->
+                            <div style="
+                                width: 24px; 
+                                height: 24px; 
+                                border-radius: 50%; 
+                                background: ${d.color || '#fff'}; 
+                                border: 1px solid rgba(255, 255, 255, 0.8);
+                                box-shadow: 0 0 4px ${d.color || '#fff'};
+                                overflow: hidden;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                            ">
+                                <img src="${d.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${d.label}`}" 
+                                     style="width: 100%; height: 100%; object-fit: cover;" 
+                                     alt="Avatar" />
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Add click listener
+                el.style.pointerEvents = 'auto';
+                el.onclick = (e) => {
+                    e.stopPropagation();
+                    // Dispatch event for Globe.tsx to pick up
+                    const event = new CustomEvent('visitor-click', { detail: d });
+                    window.dispatchEvent(event);
+                };
+
+                return el;
+            });
+    }
+  }, []);
+
+  const getScreenCoords = useCallback((lat: number, lng: number, altitude: number = 0) => {
+    if (!globeRef.current) return null;
+    return globeRef.current.getScreenCoords(lat, lng, altitude);
+  }, []);
+
   return {
     globeRef,
     isReady,
@@ -176,6 +263,8 @@ export const useGlobe = (config: GlobeConfig) => {
     updateArcs,
     updateRings,
     updateCountries,
-    updateLabels
+    updateLabels,
+    updateHtmlElements,
+    getScreenCoords
   };
 };

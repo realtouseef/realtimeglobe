@@ -1,12 +1,12 @@
 import { useState, useCallback } from 'react';
-import type { DataPoint, ArcData, RingData } from '../types/globe.types';
+import type { ArcData, RingData, VisitorData } from '../types/globe.types';
 
 export const useRealtimeData = () => {
-  const [points, setPoints] = useState<DataPoint[]>([]);
+  const [points, setPoints] = useState<VisitorData[]>([]);
   const [arcs, setArcs] = useState<ArcData[]>([]);
   const [rings, setRings] = useState<RingData[]>([]);
 
-  const addPoint = useCallback((point: DataPoint) => {
+  const addPoint = useCallback((point: VisitorData) => {
     setPoints(prev => [...prev, point]);
   }, []);
 
