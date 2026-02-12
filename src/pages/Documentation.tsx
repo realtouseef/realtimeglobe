@@ -179,6 +179,67 @@ export default function App() {
           </pre>
         </section>
 
+        {/* Custom Themes */}
+        <section id="themes">
+          <h2 className="text-3xl font-bold text-white mb-6">Custom Themes</h2>
+          <p className="mb-6">
+            RealtimeGlobe comes with three built-in themes: <code className="text-blue-400">minimal</code>, <code className="text-blue-400">night</code>, and <code className="text-blue-400">day</code>.
+            However, you can fully customize the look by overriding specific properties in the <code className="text-blue-400">config</code> object.
+          </p>
+          
+          <h3 className="text-xl font-bold text-white mb-4">Creating a Brand Theme</h3>
+          <p className="mb-4">
+            You can mix and match colors to create a globe that fits your brand identity. Here is an example of a "Cyberpunk" style theme:
+          </p>
+          
+          <div className="bg-[#0b1121] border border-white/10 rounded-xl overflow-hidden mb-6">
+            <pre className="p-6 font-mono text-sm overflow-x-auto text-slate-300">
+{`<Globe 
+  points={data}
+  config={{
+    theme: 'minimal',
+    globeColor: '#1a1a2e',
+    atmosphereColor: '#ff00ff',
+    showGraticules: true,
+    autoRotate: true
+  }} 
+/>`}
+            </pre>
+          </div>
+        </section>
+
+        {/* Performance */}
+        <section id="performance">
+          <h2 className="text-3xl font-bold text-white mb-6">Performance</h2>
+          <p className="mb-6">
+            Rendering 3D graphics in the browser can be resource-intensive. Here are some tips to ensure smooth performance (60fps):
+          </p>
+          
+          <ul className="space-y-4 text-slate-300">
+            <li className="flex gap-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shrink-0" />
+              <div>
+                <strong className="text-white block mb-1">Limit Point Count</strong> 
+                While WebGL is fast, trying to render &gt;10,000 points might cause frame drops on lower-end devices. Try to aggregate data if possible.
+              </div>
+            </li>
+            <li className="flex gap-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shrink-0" />
+              <div>
+                <strong className="text-white block mb-1">Memoize Data</strong>
+                Ensure your <code className="text-blue-400">points</code> array reference remains stable unless data actually changes to avoid unnecessary re-renders.
+              </div>
+            </li>
+            <li className="flex gap-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shrink-0" />
+              <div>
+                <strong className="text-white block mb-1">Disable Heavy Effects</strong>
+                If performance is an issue, try disabling the atmosphere effect (<code className="text-blue-400">atmosphere: false</code>) or reducing <code className="text-blue-400">autoRotateSpeed</code>.
+              </div>
+            </li>
+          </ul>
+        </section>
+
       </div>
     </div>
   );

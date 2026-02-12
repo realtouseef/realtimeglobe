@@ -71,10 +71,10 @@ export function LandingPage() {
                   </span>
                 </button>
                 
-                <button className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-bold text-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2 justify-center">
+                <a href='https://github.com/realtouseef/realtimeglobe' target='_blank' className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-bold text-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2 justify-center">
                   <Github className="w-5 h-5" />
                   <span>View Source</span>
-                </button>
+                </a>
               </div>
 
               {/* Globe Demo Wrapper */}

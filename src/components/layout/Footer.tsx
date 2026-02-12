@@ -39,8 +39,8 @@ export function Footer() {
       <div className="max-w-7xl mx-auto pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-600">
         <p>© {new Date().getFullYear()} Realtime Globe. All rights reserved.</p>
         <div className="flex gap-6">
-          <a href="#" className="hover:text-slate-400 transition-colors"><Twitter className="w-4 h-4" /></a>
-          <a href="#" className="hover:text-slate-400 transition-colors"><Github className="w-4 h-4" /></a>
+          <a href="https://x.com/touseefcodes" target='_blank' className="hover:text-slate-400 transition-colors"><Twitter className="w-4 h-4" /></a>
+          <a href="https://github.com/realtouseef/realtimeglobe" target='_blank' className="hover:text-slate-400 transition-colors"><Github className="w-4 h-4" /></a>
         </div>
       </div>
     </footer>
