@@ -226,13 +226,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div style={{
       position: 'absolute',
-      top: '24px',
-      left: '24px',
-      width: '500px',
+      top: '16px',
+      left: '16px',
+      width: '400px',
       maxWidth: '90vw',
       background: '#151517',
-      borderRadius: '24px',
-      padding: '24px',
+      borderRadius: '16px',
+      padding: '16px',
       boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
       color: '#fff',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
@@ -250,13 +250,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
       `}</style>
 
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ 
-            width: '40px', 
-            height: '40px', 
+            width: '32px', 
+            height: '32px', 
             background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)', 
-            borderRadius: '12px',
+            borderRadius: '8px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -265,14 +265,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <Icons.Logo />
           </div>
           <div>
-            <h1 style={{ fontSize: '18px', fontWeight: '600', margin: 0, letterSpacing: '-0.5px' }}>{siteName}</h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00ff88', boxShadow: '0 0 8px #00ff88' }} />
-              <span style={{ fontSize: '12px', color: '#888' }}>Live</span>
+            <h1 style={{ fontSize: '16px', fontWeight: '600', margin: 0, letterSpacing: '-0.5px' }}>{siteName}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '1px' }}>
+              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#00ff88', boxShadow: '0 0 6px #00ff88' }} />
+              <span style={{ fontSize: '11px', color: '#888' }}>Live</span>
             </div>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '6px' }}>
           <HeaderButton icon={<Icons.Refresh />} onClick={onRefresh} />
           <HeaderButton icon={isFullscreen ? <Icons.Minimize /> : <Icons.Fullscreen />} onClick={onToggleFullscreen} />
           
@@ -280,11 +280,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <button 
                 onClick={() => setIsThemeModalOpen(!isThemeModalOpen)}
                 style={{
-                  width: '36px',
-                  height: '36px',
+                  width: '32px',
+                  height: '32px',
                   padding: 0,
                   border: '2px solid rgba(255,255,255,0.1)',
-                  borderRadius: '12px',
+                  borderRadius: '8px',
                   overflow: 'hidden',
                   cursor: 'pointer',
                   background: 'transparent',
@@ -312,22 +312,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     />
                     <div style={{
                       position: 'absolute',
-                      top: 'calc(100% + 12px)',
+                      top: 'calc(100% + 8px)',
                       right: 0,
-                      width: '280px',
+                      width: '240px',
                       background: 'rgba(20, 20, 30, 0.95)',
-                      borderRadius: '14px',
-                      padding: '16px',
+                      borderRadius: '12px',
+                      padding: '12px',
                       border: '1px solid rgba(255, 255, 255, 0.12)',
                       boxShadow: '0 12px 30px rgba(0,0,0,0.5)',
                       zIndex: 101,
                       backdropFilter: 'blur(10px)'
                     }}>
                       <div style={{
-                        fontSize: '11px',
+                        fontSize: '10px',
                         color: '#8f97b7',
                         letterSpacing: '1px',
-                        marginBottom: '12px',
+                        marginBottom: '8px',
                         fontWeight: 600,
                         textTransform: 'uppercase'
                       }}>
@@ -335,8 +335,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       </div>
                       <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(44px, 1fr))',
-                        gap: '8px'
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(36px, 1fr))',
+                        gap: '6px'
                       }}>
                         {THEME_STYLES.map((item) => (
                           <button
@@ -346,9 +346,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                               setIsThemeModalOpen(false);
                             }}
                             style={{
-                              width: '44px',
-                              height: '44px',
-                              borderRadius: '12px',
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '8px',
                               border: item.id === currentTheme ? '2px solid #3B82F6' : '1px solid rgba(255, 255, 255, 0.1)',
                               background: 'rgba(255, 255, 255, 0.05)',
                               padding: 0,
@@ -371,11 +371,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <button 
                 onClick={() => setIsAvatarModalOpen(!isAvatarModalOpen)}
                 style={{
-                  width: '36px',
-                  height: '36px',
+                  width: '32px',
+                  height: '32px',
                   padding: 0,
                   border: '2px solid rgba(255,255,255,0.1)',
-                  borderRadius: '12px',
+                  borderRadius: '8px',
                   overflow: 'hidden',
                   cursor: 'pointer',
                   background: 'transparent',
@@ -395,22 +395,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     />
                     <div style={{
                       position: 'absolute',
-                      top: 'calc(100% + 12px)',
+                      top: 'calc(100% + 8px)',
                       right: 0,
-                      width: '280px',
+                      width: '240px',
                       background: 'rgba(20, 20, 30, 0.95)',
-                      borderRadius: '14px',
-                      padding: '16px',
+                      borderRadius: '12px',
+                      padding: '12px',
                       border: '1px solid rgba(255, 255, 255, 0.12)',
                       boxShadow: '0 12px 30px rgba(0,0,0,0.5)',
                       zIndex: 101,
                       backdropFilter: 'blur(10px)'
                     }}>
                       <div style={{
-                        fontSize: '11px',
+                        fontSize: '10px',
                         color: '#8f97b7',
                         letterSpacing: '1px',
-                        marginBottom: '12px',
+                        marginBottom: '8px',
                         fontWeight: 600,
                         textTransform: 'uppercase'
                       }}>
@@ -418,8 +418,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       </div>
                       <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(44px, 1fr))',
-                        gap: '8px'
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(36px, 1fr))',
+                        gap: '6px'
                       }}>
                         {avatarStyles.map((item) => (
                           <button
@@ -429,9 +429,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                               setIsAvatarModalOpen(false);
                             }}
                             style={{
-                              width: '44px',
-                              height: '44px',
-                              borderRadius: '12px',
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '8px',
                               border: item.style === avatarStyle ? '2px solid #3B82F6' : '1px solid rgba(255, 255, 255, 0.1)',
                               background: 'rgba(255, 255, 255, 0.05)',
                               padding: 0,
@@ -452,20 +452,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      <div className="scroll-container" style={{ maxHeight: 'calc(80vh - 100px)', overflowY: 'auto' }}>
+      <div className="scroll-container" style={{ maxHeight: 'calc(80vh - 80px)', overflowY: 'auto' }}>
         
         {/* Visitor Summary */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
-          fontSize: '15px',
-          marginBottom: '20px',
+          fontSize: '13px',
+          marginBottom: '16px',
           color: '#8f97b7',
         }}>
           <div style={{
-            width: '8px',
-            height: '8px',
+            width: '6px',
+            height: '6px',
             borderRadius: '50%',
             background: '#3B82F6',
             boxShadow: '0 0 8px #3B82F6'
@@ -478,11 +478,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
             alignItems: 'center',
             gap: '6px',
             background: '#000',
-            padding: '4px 8px',
-            borderRadius: '6px',
+            padding: '3px 6px',
+            borderRadius: '4px',
             border: '1px solid rgba(255,255,255,0.1)'
           }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#fff' }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#fff' }}>
               <polyline points="16 18 22 12 16 6" />
               <polyline points="8 6 2 12 8 18" />
             </svg>
@@ -492,10 +492,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* Stats Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '16px', alignItems: 'center' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '12px', alignItems: 'center' }}>
         {/* Referrers */}
-        <div style={{ color: '#888', fontSize: '14px', fontWeight: 500 }}>Referrers</div>
-        <div className="scroll-container" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '2px' }}>
+        <div style={{ color: '#888', fontSize: '12px', fontWeight: 500, textAlign: 'left' }}>Referrers</div>
+        <div className="scroll-container" style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
           {referrers.map(([ref, count]) => (
             <StatPill 
               key={ref} 
@@ -508,8 +508,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* Countries */}
-        <div style={{ color: '#888', fontSize: '14px', fontWeight: 500 }}>Countries</div>
-        <div className="scroll-container" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '2px' }}>
+        <div style={{ color: '#888', fontSize: '12px', fontWeight: 500, textAlign: 'left' }}>Countries</div>
+        <div className="scroll-container" style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
           {countries.map(([country, count]) => (
             <StatPill 
               key={country} 
@@ -522,8 +522,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* Devices */}
-        <div style={{ color: '#888', fontSize: '14px', fontWeight: 500 }}>Devices</div>
-        <div className="scroll-container" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '2px' }}>
+        <div style={{ color: '#888', fontSize: '12px', fontWeight: 500, textAlign: 'left' }}>Devices</div>
+        <div className="scroll-container" style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
           {devices.map(([device, count]) => (
             <StatPill 
               key={device} 

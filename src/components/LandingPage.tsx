@@ -10,17 +10,94 @@ export function LandingPage() {
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       overflowX: 'hidden'
     }}>
+      {/* Styles for Responsiveness */}
+      <style>{`
+        .nav-container {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 20px 40px;
+          max-width: 1200px;
+          margin: 0 auto;
+          z-index: 10;
+          position: relative;
+        }
+        .nav-links {
+          display: flex;
+          gap: 20px;
+        }
+        .hero-title {
+          font-size: 3.5rem;
+          line-height: 1.1;
+          font-weight: 800;
+          margin-bottom: 24px;
+          background: linear-gradient(to right, #fff, #94a3b8);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+        .hero-buttons {
+          display: flex;
+          gap: 16px;
+          justify-content: center;
+        }
+        .code-section-grid {
+          max-width: 1000px;
+          margin: 0 auto;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 60px;
+          align-items: center;
+        }
+        .globe-container {
+          height: 700px;
+          width: 100%;
+          position: relative;
+          border-radius: 24px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          overflow: hidden;
+          background: rgba(255, 255, 255, 0.02);
+        }
+
+        @media (max-width: 768px) {
+          .nav-container {
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px;
+          }
+          .nav-links {
+            width: 100%;
+            justify-content: center;
+            font-size: 0.9rem;
+            flex-wrap: wrap;
+          }
+          .hero-title {
+            font-size: 2.5rem;
+          }
+          .hero-buttons {
+            flex-direction: column;
+            width: 100%;
+            padding: 0 20px;
+          }
+          .hero-buttons button {
+            width: 100%;
+            justify-content: center;
+          }
+          .code-section-grid {
+            grid-template-columns: 1fr;
+            gap: 40px;
+          }
+          .globe-container {
+            height: 400px;
+            border-radius: 16px;
+          }
+          .section-padding {
+            padding: 60px 20px !important;
+          }
+        }
+      `}</style>
+
       {/* Navigation */}
-      <nav style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '20px 40px',
-        maxWidth: '1200px',
-        margin: '0 auto',
-        zIndex: 10,
-        position: 'relative'
-      }}>
+      <nav className="nav-container">
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ 
             width: '32px', 
@@ -39,7 +116,7 @@ export function LandingPage() {
           </div>
           <span style={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: '-0.02em' }}>realtime-globe</span>
         </div>
-        <div style={{ display: 'flex', gap: '20px' }}>
+        <div className="nav-links">
           <a href="#features" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: '0.95rem', transition: 'color 0.2s' }}>Features</a>
           <a href="#docs" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: '0.95rem', transition: 'color 0.2s' }}>Documentation</a>
           <a href="https://github.com" target="_blank" rel="noopener noreferrer" style={{ color: 'white', textDecoration: 'none', fontWeight: 500 }}>GitHub</a>
@@ -48,16 +125,16 @@ export function LandingPage() {
 
       {/* Hero Section */}
       <header style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '40px',
         maxWidth: '1200px',
         margin: '0 auto',
         padding: '60px 20px',
+        minHeight: '600px',
+        display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
-        minHeight: '600px'
+        textAlign: 'center'
       }}>
-        <div style={{ zIndex: 10 }}>
+        <div style={{ zIndex: 10, marginBottom: '60px', maxWidth: '800px' }}>
           <div style={{ 
             display: 'inline-block', 
             padding: '6px 12px', 
@@ -88,12 +165,13 @@ export function LandingPage() {
             color: '#94a3b8',
             lineHeight: 1.6,
             marginBottom: '32px',
-            maxWidth: '500px'
+            maxWidth: '600px',
+            margin: '0 auto 32px auto'
           }}>
             A high-performance, interactive globe component for React. 
             Visualize traffic, users, and events with beautiful, customizable themes.
           </p>
-          <div style={{ display: 'flex', gap: '16px' }}>
+          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
             <button style={{
               background: '#3B82F6',
               color: 'white',
@@ -130,12 +208,13 @@ export function LandingPage() {
         </div>
 
         <div style={{ 
-          height: '600px', 
+          height: '700px', 
           width: '100%', 
           position: 'relative',
           borderRadius: '24px',
           border: '1px solid rgba(255, 255, 255, 0.1)',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          background: 'rgba(255, 255, 255, 0.02)'
         }}>
           {/* We wrap the demo to ensure it fits nicely */}
           <GlobeDemo />
@@ -237,7 +316,7 @@ export function LandingPage() {
         textAlign: 'center',
         color: '#64748b'
       }}>
-        <p>© 2024 Realtime Globe. Open Source MIT License.</p>
+        <p>© {new Date().getFullYear()} Realtime Globe. Open Source MIT License.</p>
       </footer>
     </div>
   );

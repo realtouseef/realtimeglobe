@@ -186,28 +186,30 @@ export const useGlobe = (config: GlobeConfig) => {
         setIsReady(true);
     }, 0);
 
-    const handleResize = () => {
-        if (config.containerRef.current) {
-            globe.width(config.containerRef.current.clientWidth);
-            globe.height(config.containerRef.current.clientHeight);
+    // Use ResizeObserver for more robust resizing
+    const resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+            if (entry.target === config.containerRef.current) {
+                 if (config.containerRef.current) {
+                      globe.width(config.containerRef.current.clientWidth);
+                      globe.height(config.containerRef.current.clientHeight);
+                 }
+            }
         }
-    };
+    });
+
+    if (config.containerRef.current) {
+        resizeObserver.observe(config.containerRef.current);
+    }
     
-    // Debounce resize to prevent excessive updates
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let resizeTimeout: any;
-    const debouncedResize = () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(handleResize, 100);
-    };
-    
-    window.addEventListener('resize', debouncedResize);
     // Initial resize
-    handleResize();
+    if (config.containerRef.current) {
+        globe.width(config.containerRef.current.clientWidth);
+        globe.height(config.containerRef.current.clientHeight);
+    }
 
     return () => {
-      window.removeEventListener('resize', debouncedResize);
-      clearTimeout(resizeTimeout);
+      resizeObserver.disconnect();
       const renderer = globe.renderer();
       if (renderer) {
           renderer.dispose();
