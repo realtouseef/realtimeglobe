@@ -1,54 +1,137 @@
-# RealtimeGlobe 🌍
+# Realtime Globe 🌍
 
-A stunning, interactive 3D globe visualization built with React, Three.js, and Globe.gl. This application simulates real-time visitor tracking with a beautiful, futuristic dashboard interface.
+A high-performance, interactive 3D globe component for React, built with Three.js and Globe.gl. Perfect for visualizing real-time data, visitor tracking, or global networks.
 
-![Project Status](https://img.shields.io/badge/status-active-success.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Version](https://img.shields.io/badge/version-0.1.0-green.svg)
 
 ## ✨ Features
 
-### 🌐 Interactive 3D Globe
 - **High-Performance Rendering**: Built on Three.js and Globe.gl for smooth 60fps animations.
-- **Dynamic Zoom & Controls**: Seamless zoom limits, auto-rotation, and interactive controls.
-- **Smart Labels**: City labels automatically appear when zooming in to reduce clutter.
-- **Atmospheric Effects**: Realistic atmosphere glow and background radial gradients.
+- **Dynamic Themes**: Switch between Minimal, Earth Night, and Earth Day modes.
+- **Interactive Data**: Support for Points, Arcs, Rings, and HTML markers.
+- **Smart Zooming**: Automatic level-of-detail adjustments and label visibility.
+- **Atmospheric Effects**: Realistic atmosphere glow and custom backgrounds.
+- **Fully Typed**: Comprehensive TypeScript definitions included.
 
-### 🎨 Theming & Customization
-- **Multiple Themes**:
-  - **Minimal**: Clean, vector-based dark grey aesthetic.
-  - **Earth Night**: Satellite imagery of Earth at night.
-  - **Earth Day**: Realistic daytime satellite imagery.
-- **Avatar Personalization**: Choose from multiple avatar styles (e.g., Avataaars, Bottts, etc.) powered by DiceBear.
+## 📦 Installation
 
-### 📊 Real-time Dashboard
-- **Live Visitor Tracking**: Visualizes user sessions as interactive markers on the globe.
-- **Analytics Cards**:
-  - **Referrers**: Top traffic sources (Google, Twitter, Direct, etc.).
-  - **Countries**: Visitor distribution by country.
-  - **Devices**: Desktop vs. Mobile usage breakdown.
-- **Visitor Details**: Click on any visitor marker to see detailed info including location, status, and avatar.
+This package requires `react`, `react-dom`, and `three` as peer dependencies.
 
-### 💻 Modern UI/UX
-- **Glassmorphism Design**: Sleek, translucent UI elements with blur effects.
-- **Fullscreen Mode**: Immersive viewing experience.
-- **Responsive Layout**: Adapts to different screen sizes.
+```bash
+npm install realtime-globe three
+# or
+yarn add realtime-globe three
+# or
+pnpm add realtime-globe three
+```
 
-## 🛠️ Tech Stack
+## 🚀 Basic Usage
 
-- **Framework**: [React 19](https://react.dev/)
-- **Build Tool**: [Vite](https://vitejs.dev/)
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **3D Library**: [Three.js](https://threejs.org/) & [Globe.gl](https://globe.gl/)
-- **Map Data**: [TopoJSON](https://github.com/topojson/topojson)
-- **Styling**: CSS Modules & Inline Styles
+```tsx
+import React from 'react';
+import { Globe } from 'realtime-globe';
 
-## 🚀 Getting Started
+function App() {
+  const points = [
+    { 
+      lat: 40.7128, 
+      lng: -74.0060, 
+      size: 0.5, 
+      color: '#ff0000', 
+      label: 'New York' 
+    },
+    { 
+      lat: 51.5074, 
+      lng: -0.1278, 
+      size: 0.5, 
+      color: '#00ff00', 
+      label: 'London' 
+    }
+  ];
 
-### Prerequisites
-- Node.js (v16 or higher)
-- npm or yarn
+  return (
+    <div style={{ height: '100vh', width: '100%' }}>
+      <Globe 
+        points={points}
+        config={{
+          theme: 'earth-night',
+          enableAtmosphere: true
+        }}
+        onPointClick={(point) => console.log('Clicked:', point)}
+      />
+    </div>
+  );
+}
+```
 
-### Installation
+## 📖 API Reference
+
+### `<Globe />` Component
+
+The main component for rendering the 3D globe.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `config` | `GlobeConfig` | Configuration object for visual appearance. |
+| `points` | `DataPoint[]` | Array of points to render on the globe surface. |
+| `arcs` | `ArcData[]` | Array of arcs (lines) connecting points. |
+| `rings` | `RingData[]` | Array of animated rings (ripples) at specific coordinates. |
+| `labels` | `LabelData[]` | Text labels to display at coordinates. |
+| `htmlElements` | `VisitorData[]` | Custom HTML markers (useful for avatars/tooltips). |
+| `width` | `number` | Width of the globe container (defaults to 100%). |
+| `height` | `number` | Height of the globe container (defaults to 100%). |
+| `onPointClick` | `(point, event, coords) => void` | Callback when a point is clicked. |
+| `onGlobeReady` | `() => void` | Callback when the globe is fully initialized. |
+
+### Configuration (`GlobeConfig`)
+
+Pass this object to the `config` prop to customize the globe's appearance.
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `theme` | `'minimal' \| 'earth-night' \| 'earth-day' \| 'earth-blue'` | `'minimal'` | Preset visual themes. |
+| `enableAutoRotate` | `boolean` | `false` | Whether the globe should rotate automatically. |
+| `autoRotateSpeed` | `number` | `0.5` | Speed of auto-rotation. |
+| `enableAtmosphere` | `boolean` | `true` | Show atmospheric glow. |
+| `atmosphereColor` | `string` | `'#3a228a'` | Color of the atmosphere. |
+| `backgroundColor` | `string` | `'#000011'` | Background color of the scene. |
+| `globeImageUrl` | `string` | `null` | Custom texture URL for the globe surface. |
+| `bumpImageUrl` | `string` | `null` | Custom bump map URL for topography. |
+
+### Data Types
+
+#### `DataPoint`
+```typescript
+interface DataPoint {
+  lat: number;
+  lng: number;
+  color?: string;
+  size?: number;
+  altitude?: number;
+  label?: string;
+  customData?: any;
+}
+```
+
+#### `ArcData`
+```typescript
+interface ArcData {
+  startLat: number;
+  startLng: number;
+  endLat: number;
+  endLng: number;
+  color?: string | string[];
+  altitude?: number;
+  strokeWidth?: number;
+  dashLength?: number;
+  animationTime?: number;
+}
+```
+
+## 🛠️ Local Development
+
+To run the example dashboard included in this repository:
 
 1. **Clone the repository**
    ```bash
@@ -66,42 +149,6 @@ A stunning, interactive 3D globe visualization built with React, Three.js, and G
    npm run dev
    ```
 
-4. **Build for production**
-   ```bash
-   npm run build
-   ```
-
-## 📂 Project Structure
-
-```
-src/
-├── assets/          # Static assets
-├── components/      # React components
-│   ├── Dashboard.tsx    # Analytics panel & UI overlays
-│   ├── Globe.tsx        # 3D Globe wrapper
-│   └── GlobeControls.tsx # Camera controls
-├── data/            # Static data files (Cities, etc.)
-├── hooks/           # Custom React Hooks
-│   ├── useGlobe.ts      # Core globe logic & configuration
-│   └── useRealtimeData.ts # Data simulation/fetching
-├── types/           # TypeScript definitions
-└── utils/           # Helper functions (Geo calculations)
-```
-
-## 🎮 Controls
-
-- **Left Click + Drag**: Rotate the globe.
-- **Scroll**: Zoom in/out.
-- **Click Marker**: View visitor details.
-- **Dashboard Icons**:
-  - 🔄 Refresh data
-  - ⛶ Toggle Fullscreen
-  - 👤 Change Avatar Style (Dropdown)
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
 ## 📄 License
 
-This project is licensed under the MIT License.
+MIT
