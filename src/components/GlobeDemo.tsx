@@ -280,19 +280,8 @@ export function GlobeDemo() {
   }, []);
 
   return (
-    <div ref={dashboardRef} style={{ 
-      width: '100%', 
-      height: '100%', 
-      position: 'relative', 
-      // Background is handled by parent or transparent here? 
-      // Let's keep it transparent and let parent decide, OR keep the galaxy background if it's part of the "Demo" experience
-      background: `radial-gradient(circle at 50% 50%, rgba(30, 58, 138, 0.6) 0%, rgba(30, 58, 138, 0) var(--glow-spread, 40%))`, // removed fixed url background to allow blending
-      backgroundColor: 'transparent', // Changed from #02040a to blend
-      backgroundSize: '100% 100%',
-      backgroundRepeat: 'no-repeat',
-      borderRadius: '24px', // Add some rounding for embedding
-      overflow: 'hidden',
-      boxShadow: '0 0 50px rgba(0,0,0,0.5)'
+    <div ref={dashboardRef} className="w-full h-full relative overflow-hidden rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-transparent bg-no-repeat bg-[length:100%_100%]" style={{ 
+      background: `radial-gradient(circle at 50% 50%, rgba(30, 58, 138, 0.6) 0%, rgba(30, 58, 138, 0) var(--glow-spread, 40%))`
     }}>
 
 
@@ -325,39 +314,15 @@ export function GlobeDemo() {
 
 
       {/* Event Log with Glassmorphism */}
-      <div style={{
-        position: 'absolute',
-        bottom: '20px',
-        left: '20px',
-        width: '300px',
-        background: 'rgba(20, 20, 30, 0.6)',
-        backdropFilter: 'blur(10px)',
-        borderRadius: '12px',
-        padding: '20px',
-        color: '#e0e0e0',
-        fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-        fontSize: '13px',
-        pointerEvents: 'none',
-        zIndex: 10,
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)'
-      }}>
-        <h3 style={{ margin: '0 0 15px 0', color: '#fff', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>Live Traffic</h3>
-        <div style={{ height: '200px', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div className="absolute bottom-4 left-4 w-[260px] bg-[#14141e]/60 backdrop-blur-md rounded-xl p-4 text-[#e0e0e0] font-sans text-xs pointer-events-none z-10 border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+        <h3 className="m-0 mb-3 text-white text-[13px] uppercase tracking-widest">Live Traffic</h3>
+        <div className="h-[160px] overflow-hidden flex flex-col gap-1.5">
           {logs.map((log, i) => (
-            <div key={i} style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                opacity: 1 - i * 0.05,
-                animation: 'fadeIn 0.3s ease-in'
+            <div key={i} className="flex items-center animate-fadeIn" style={{ 
+                opacity: 1 - i * 0.05
             }}>
-              <span style={{ 
-                  color: '#888', 
-                  fontSize: '11px', 
-                  marginRight: '10px',
-                  minWidth: '50px' 
-              }}>{new Date().toLocaleTimeString()}</span> 
-              <span style={{ color: '#ccc' }}>{log}</span>
+              <span className="text-[#888] text-[11px] mr-2 min-w-[45px]">{new Date().toLocaleTimeString()}</span> 
+              <span className="text-[#ccc]">{log}</span>
             </div>
           ))}
         </div>
@@ -365,82 +330,37 @@ export function GlobeDemo() {
 
       {/* Visitor Details Card */}
       {selectedVisitor && visitorCoords && (
-        <div style={{
-            position: 'absolute',
+        <div 
+          className="absolute -translate-x-1/2 -translate-y-[120%] bg-[#14141e]/90 backdrop-blur-xl rounded-2xl p-6 w-[320px] text-white font-sans z-[100] border border-white/15 shadow-[0_10px_40px_rgba(0,0,0,0.8)] pointer-events-auto animate-scaleIn"
+          style={{
             top: visitorCoords.y,
             left: visitorCoords.x,
-            transform: 'translate(-50%, -120%)', // Position above the dot
-            background: 'rgba(20, 20, 30, 0.9)',
-            backdropFilter: 'blur(16px)',
-            borderRadius: '16px',
-            padding: '24px',
-            width: '320px',
-            color: '#fff',
-            fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-            zIndex: 100,
-            border: '1px solid rgba(255, 255, 255, 0.15)',
-            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.8)',
-            animation: 'scaleIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-            pointerEvents: 'auto'
         }}>
             {/* Connecting line to the dot */}
-            <div style={{
-                position: 'absolute',
-                bottom: '-10px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '0',
-                height: '0',
-                borderLeft: '10px solid transparent',
-                borderRight: '10px solid transparent',
-                borderTop: '10px solid rgba(20, 20, 30, 0.9)',
-                filter: 'drop-shadow(0 4px 4px rgba(0,0,0,0.5))'
-            }} />
+            <div className="absolute -bottom-[10px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[10px] border-t-[#14141e]/90 drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]" />
             <button 
                 onClick={closeDetails}
-                style={{
-                    position: 'absolute',
-                    top: '12px',
-                    right: '12px',
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#888',
-                    cursor: 'pointer',
-                    fontSize: '20px'
-                }}
+                className="absolute top-3 right-3 bg-transparent border-none text-[#888] cursor-pointer text-xl hover:text-white transition-colors"
             >×</button>
             
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-                <div style={{ 
-                    width: '64px', 
-                    height: '64px', 
-                    borderRadius: '50%', 
-                    overflow: 'hidden',
-                    border: `3px solid ${selectedVisitor.color}`,
-                    marginRight: '16px'
-                }}>
+            <div className="flex items-center mb-5">
+                <div className="w-16 h-16 rounded-full overflow-hidden mr-4 border-[3px]" style={{ borderColor: selectedVisitor.color }}>
                     <img 
                         src={selectedAvatarUrl} 
                         alt="Avatar" 
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        className="w-full h-full object-cover"
                     />
                 </div>
                 <div>
-                    <h2 style={{ margin: '0 0 4px 0', fontSize: '18px' }}>Visitor Details</h2>
-                    <div style={{ fontSize: '12px', color: '#aaa', display: 'flex', alignItems: 'center' }}>
-                        <span style={{ 
-                            width: '8px', 
-                            height: '8px', 
-                            borderRadius: '50%', 
-                            background: '#00ff88', 
-                            marginRight: '6px' 
-                        }}></span>
+                    <h2 className="m-0 mb-1 text-lg font-semibold">Visitor Details</h2>
+                    <div className="text-xs text-[#aaa] flex items-center">
+                        <span className="w-2 h-2 rounded-full bg-[#00ff88] mr-1.5"></span>
                         Online Now
                     </div>
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="grid grid-cols-2 gap-4">
                 <DetailItem label="Location" value={`${selectedVisitor.city}, ${selectedVisitor.country}`} fullWidth />
                 <DetailItem label="Device" value={selectedVisitor.device} />
                 <DetailItem label="Browser" value={selectedVisitor.browser} />
@@ -456,17 +376,9 @@ export function GlobeDemo() {
 
 // Helper component for details
 const DetailItem = ({ label, value, fullWidth = false, isLink = false }: { label: string, value: string, fullWidth?: boolean, isLink?: boolean }) => (
-    <div style={{ gridColumn: fullWidth ? 'span 2' : 'span 1' }}>
-        <div style={{ fontSize: '11px', color: '#888', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
-        <div style={{ 
-            fontSize: '14px', 
-            color: isLink ? '#4a9eff' : '#eee', 
-            whiteSpace: 'nowrap', 
-            overflow: 'hidden', 
-            textOverflow: 'ellipsis',
-            textDecoration: isLink ? 'underline' : 'none',
-            cursor: isLink ? 'pointer' : 'default'
-        }}>
+    <div className={fullWidth ? 'col-span-2' : 'col-span-1'}>
+        <div className="text-[11px] text-[#888] mb-1 uppercase tracking-wider">{label}</div>
+        <div className={`text-sm whitespace-nowrap overflow-hidden text-ellipsis ${isLink ? 'text-[#4a9eff] underline cursor-pointer' : 'text-[#eee] cursor-default'}`}>
             {value}
         </div>
     </div>

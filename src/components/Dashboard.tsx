@@ -85,50 +85,23 @@ const THEME_STYLES = [
 const HeaderButton: React.FC<{ icon: React.ReactNode; onClick?: () => void }> = ({ icon, onClick }) => (
   <button 
     onClick={onClick}
-    style={{
-      background: 'transparent',
-      border: '1px solid rgba(255,255,255,0.2)',
-      borderRadius: '10px',
-      width: '36px',
-      height: '36px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      color: 'white',
-      cursor: 'pointer',
-      transition: 'background 0.2s',
-      padding: 0
-    }}
-    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+    className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/20 bg-transparent text-white hover:bg-white/10 transition-colors cursor-pointer p-0"
   >
     {icon}
   </button>
 );
 
 const StatPill: React.FC<{ icon: React.ReactNode; label: string; count?: number; color?: string }> = ({ icon, label, count, color }) => (
-  <div style={{
-    background: '#242426',
-    borderRadius: '8px',
-    padding: '4px 10px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    fontSize: '13px',
-    color: '#e0e0e0',
-    whiteSpace: 'nowrap'
-  }}>
+  <div className="bg-[#242426] rounded-md px-2 py-[3px] flex items-center gap-1.5 text-xs text-[#e0e0e0] whitespace-nowrap">
     {typeof icon === 'string' ? (
-      <img src={icon} alt="" style={{ width: '16px', height: '12px', borderRadius: '2px', objectFit: 'cover' }} />
+      <img src={icon} alt="" className="w-4 h-3 rounded-[2px] object-cover" />
     ) : (
       icon
     )}
     <span style={{ color: color || 'inherit' }}>{label}</span>
-    {count !== undefined && <span style={{ color: '#888', marginLeft: '2px' }}>({count})</span>}
+    {count !== undefined && <span className="text-[#888] ml-0.5">({count})</span>}
   </div>
 );
-
-
 
 export const Dashboard: React.FC<DashboardProps> = ({
   visitors,
@@ -224,120 +197,50 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   return (
-    <div style={{
-      position: 'absolute',
-      top: '16px',
-      left: '16px',
-      width: '400px',
-      maxWidth: '90vw',
-      background: '#151517',
-      borderRadius: '16px',
-      padding: '16px',
-      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
-      color: '#fff',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-      zIndex: 50,
-      border: '1px solid rgba(255,255,255,0.08)'
-    }}>
-      <style>{`
-        .scroll-container::-webkit-scrollbar {
-          display: none;
-        }
-        .scroll-container {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
-
+    <div className="absolute top-4 left-4 w-80 max-w-[90vw] bg-[#151517] rounded-2xl p-3 shadow-[0_8px_32px_rgba(0,0,0,0.5)] text-white font-sans z-50 border border-white/10">
+      
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ 
-            width: '32px', 
-            height: '32px', 
-            background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)', 
-            borderRadius: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)'
-          }}>
+      <div className="flex justify-between items-center mb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 rounded-md flex items-center justify-center shadow-[0_4px_12px_rgba(37,99,235,0.3)]">
             <Icons.Logo />
           </div>
           <div>
-            <h1 style={{ fontSize: '16px', fontWeight: '600', margin: 0, letterSpacing: '-0.5px' }}>{siteName}</h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '1px' }}>
-              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#00ff88', boxShadow: '0 0 6px #00ff88' }} />
-              <span style={{ fontSize: '11px', color: '#888' }}>Live</span>
+            <h1 className="text-[15px] font-semibold m-0 tracking-tighter">{siteName}</h1>
+            <div className="flex items-center gap-1 mt-0">
+              <span className="w-1 h-1 rounded-full bg-[#00ff88] shadow-[0_0_6px_#00ff88]" />
+              <span className="text-[10px] text-[#888]">Live</span>
             </div>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '6px' }}>
+        <div className="flex gap-1">
           <HeaderButton icon={<Icons.Refresh />} onClick={onRefresh} />
           <HeaderButton icon={isFullscreen ? <Icons.Minimize /> : <Icons.Fullscreen />} onClick={onToggleFullscreen} />
           
-          <div style={{ position: 'relative' }}>
+          <div className="relative">
               <button 
                 onClick={() => setIsThemeModalOpen(!isThemeModalOpen)}
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  padding: 0,
-                  border: '2px solid rgba(255,255,255,0.1)',
-                  borderRadius: '8px',
-                  overflow: 'hidden',
-                  cursor: 'pointer',
-                  background: 'transparent',
-                  transition: 'transform 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                className="w-8 h-8 p-0 border-2 border-white/10 rounded-lg overflow-hidden cursor-pointer bg-transparent flex items-center justify-center hover:scale-105 transition-transform"
                 title="Change Theme"
               >
                  <img 
                     src={THEME_STYLES.find(t => t.id === currentTheme)?.preview || THEME_STYLES[0].preview} 
                     alt="Theme" 
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    className="w-full h-full object-cover" 
                  />
               </button>
 
               {isThemeModalOpen && (
                 <>
                     <div 
-                        style={{ position: 'fixed', inset: 0, zIndex: 100, cursor: 'default' }} 
+                        className="fixed inset-0 z-[100] cursor-default" 
                         onClick={() => setIsThemeModalOpen(false)}
                     />
-                    <div style={{
-                      position: 'absolute',
-                      top: 'calc(100% + 8px)',
-                      right: 0,
-                      width: '240px',
-                      background: 'rgba(20, 20, 30, 0.95)',
-                      borderRadius: '12px',
-                      padding: '12px',
-                      border: '1px solid rgba(255, 255, 255, 0.12)',
-                      boxShadow: '0 12px 30px rgba(0,0,0,0.5)',
-                      zIndex: 101,
-                      backdropFilter: 'blur(10px)'
-                    }}>
-                      <div style={{
-                        fontSize: '10px',
-                        color: '#8f97b7',
-                        letterSpacing: '1px',
-                        marginBottom: '8px',
-                        fontWeight: 600,
-                        textTransform: 'uppercase'
-                      }}>
+                    <div className="absolute top-[calc(100%+8px)] right-0 w-[200px] bg-[#14141e]/95 rounded-xl p-2.5 border border-white/10 shadow-[0_12px_30px_rgba(0,0,0,0.5)] z-[101] backdrop-blur-md">
+                      <div className="text-[10px] text-[#8f97b7] tracking-widest mb-2 font-semibold uppercase">
                         Globe Theme
                       </div>
-                      <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(36px, 1fr))',
-                        gap: '6px'
-                      }}>
+                      <div className="grid grid-cols-[repeat(auto-fill,minmax(32px,1fr))] gap-1">
                         {THEME_STYLES.map((item) => (
                           <button
                             key={item.id}
@@ -345,20 +248,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                               onThemeChange(item.id as any);
                               setIsThemeModalOpen(false);
                             }}
-                            style={{
-                              width: '36px',
-                              height: '36px',
-                              borderRadius: '8px',
-                              border: item.id === currentTheme ? '2px solid #3B82F6' : '1px solid rgba(255, 255, 255, 0.1)',
-                              background: 'rgba(255, 255, 255, 0.05)',
-                              padding: 0,
-                              overflow: 'hidden',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s ease'
-                            }}
+                            className={`w-8 h-8 rounded-lg p-0 overflow-hidden cursor-pointer transition-all duration-200 ${item.id === currentTheme ? 'border-2 border-blue-500' : 'border border-white/10 bg-white/5'}`}
                             title={item.label}
                           >
-                            <img src={item.preview} alt={item.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src={item.preview} alt={item.label} className="w-full h-full object-cover" />
                           </button>
                         ))}
                       </div>
@@ -367,60 +260,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
               )}
           </div>
 
-          <div style={{ position: 'relative' }}>
+          <div className="relative">
               <button 
                 onClick={() => setIsAvatarModalOpen(!isAvatarModalOpen)}
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  padding: 0,
-                  border: '2px solid rgba(255,255,255,0.1)',
-                  borderRadius: '8px',
-                  overflow: 'hidden',
-                  cursor: 'pointer',
-                  background: 'transparent',
-                  transition: 'transform 0.2s'
-                }}
-                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                className="w-8 h-8 p-0 border-2 border-white/10 rounded-lg overflow-hidden cursor-pointer bg-transparent transition-transform hover:scale-105"
               >
-                <img src={avatarUrl} alt="Profile" style={{ width: '100%', height: '100%' }} />
+                <img src={avatarUrl} alt="Profile" className="w-full h-full" />
               </button>
 
               {isAvatarModalOpen && (
                 <>
                     <div 
-                        style={{ position: 'fixed', inset: 0, zIndex: 100, cursor: 'default' }} 
+                        className="fixed inset-0 z-[100] cursor-default" 
                         onClick={() => setIsAvatarModalOpen(false)}
                     />
-                    <div style={{
-                      position: 'absolute',
-                      top: 'calc(100% + 8px)',
-                      right: 0,
-                      width: '240px',
-                      background: 'rgba(20, 20, 30, 0.95)',
-                      borderRadius: '12px',
-                      padding: '12px',
-                      border: '1px solid rgba(255, 255, 255, 0.12)',
-                      boxShadow: '0 12px 30px rgba(0,0,0,0.5)',
-                      zIndex: 101,
-                      backdropFilter: 'blur(10px)'
-                    }}>
-                      <div style={{
-                        fontSize: '10px',
-                        color: '#8f97b7',
-                        letterSpacing: '1px',
-                        marginBottom: '8px',
-                        fontWeight: 600,
-                        textTransform: 'uppercase'
-                      }}>
+                    <div className="absolute top-[calc(100%+8px)] right-0 w-[200px] bg-[#14141e]/95 rounded-xl p-2.5 border border-white/10 shadow-[0_12px_30px_rgba(0,0,0,0.5)] z-[101] backdrop-blur-md">
+                      <div className="text-[10px] text-[#8f97b7] tracking-widest mb-2 font-semibold uppercase">
                         Avatar Style
                       </div>
-                      <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(36px, 1fr))',
-                        gap: '6px'
-                      }}>
+                      <div className="grid grid-cols-[repeat(auto-fill,minmax(32px,1fr))] gap-1">
                         {avatarStyles.map((item) => (
                           <button
                             key={item.style}
@@ -428,20 +286,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                               onAvatarStyleChange(item.style);
                               setIsAvatarModalOpen(false);
                             }}
-                            style={{
-                              width: '36px',
-                              height: '36px',
-                              borderRadius: '8px',
-                              border: item.style === avatarStyle ? '2px solid #3B82F6' : '1px solid rgba(255, 255, 255, 0.1)',
-                              background: 'rgba(255, 255, 255, 0.05)',
-                              padding: 0,
-                              overflow: 'hidden',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s ease'
-                            }}
+                            className={`w-8 h-8 rounded-lg p-0 overflow-hidden cursor-pointer transition-all duration-200 ${item.style === avatarStyle ? 'border-2 border-blue-500' : 'border border-white/10 bg-white/5'}`}
                             title={item.style}
                           >
-                            <img src={item.url} alt={item.style} style={{ width: '100%', height: '100%' }} />
+                            <img src={item.url} alt={item.style} className="w-full h-full" />
                           </button>
                         ))}
                       </div>
@@ -452,50 +300,29 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      <div className="scroll-container" style={{ maxHeight: 'calc(80vh - 80px)', overflowY: 'auto' }}>
+      <div className="max-h-[calc(80vh-80px)] overflow-y-auto [&::-webkit-scrollbar]:hidden">
         
         {/* Visitor Summary */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          fontSize: '13px',
-          marginBottom: '16px',
-          color: '#8f97b7',
-        }}>
-          <div style={{
-            width: '6px',
-            height: '6px',
-            borderRadius: '50%',
-            background: '#3B82F6',
-            boxShadow: '0 0 8px #3B82F6'
-          }} />
+        <div className="flex items-center gap-1.5 text-xs mb-3 text-[#8f97b7]">
+          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_#3B82F6]" />
           <div>
-            <span style={{ color: '#fff', fontWeight: 600 }}>{visitors.length}</span> visitors on 
+            <span className="text-white font-semibold">{visitors.length}</span> visitors on 
           </div>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            background: '#000',
-            padding: '3px 6px',
-            borderRadius: '4px',
-            border: '1px solid rgba(255,255,255,0.1)'
-          }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#fff' }}>
+          <div className="flex items-center gap-1 bg-black px-1.5 py-0.5 rounded border border-white/10">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white">
               <polyline points="16 18 22 12 16 6" />
               <polyline points="8 6 2 12 8 18" />
             </svg>
-            <span style={{ color: '#fff', fontWeight: 600 }}>{siteName}</span>
+            <span className="text-white font-semibold">{siteName}</span>
           </div>
-          <span style={{ color: '#888' }}>(est. value: <span style={{ color: '#00ff88', fontWeight: 500 }}>${Math.floor(visitors.length * 0.67)}</span>)</span>
+          <span className="text-[#888]">(est. <span className="text-[#00ff88] font-medium">${Math.floor(visitors.length * 0.67)}</span>)</span>
         </div>
 
         {/* Stats Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '12px', alignItems: 'center' }}>
+      <div className="grid grid-cols-[70px_1fr] gap-2 items-center">
         {/* Referrers */}
-        <div style={{ color: '#888', fontSize: '12px', fontWeight: 500, textAlign: 'left' }}>Referrers</div>
-        <div className="scroll-container" style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+        <div className="text-[#888] text-xs font-medium text-left">Referrers</div>
+        <div className="flex gap-1.5 overflow-x-auto pb-0.5 [&::-webkit-scrollbar]:hidden">
           {referrers.map(([ref, count]) => (
             <StatPill 
               key={ref} 
@@ -504,12 +331,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
               count={count} 
             />
           ))}
-          {referrers.length === 0 && <span style={{ color: '#444', fontSize: '13px' }}>Waiting for data...</span>}
+          {referrers.length === 0 && <span className="text-[#444] text-[13px]">Waiting for data...</span>}
         </div>
 
         {/* Countries */}
-        <div style={{ color: '#888', fontSize: '12px', fontWeight: 500, textAlign: 'left' }}>Countries</div>
-        <div className="scroll-container" style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+        <div className="text-[#888] text-xs font-medium text-left">Countries</div>
+        <div className="flex gap-1.5 overflow-x-auto pb-0.5 [&::-webkit-scrollbar]:hidden">
           {countries.map(([country, count]) => (
             <StatPill 
               key={country} 
@@ -518,12 +345,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
               count={count} 
             />
           ))}
-          {countries.length === 0 && <span style={{ color: '#444', fontSize: '13px' }}>Waiting for data...</span>}
+          {countries.length === 0 && <span className="text-[#444] text-[13px]">Waiting for data...</span>}
         </div>
 
         {/* Devices */}
-        <div style={{ color: '#888', fontSize: '12px', fontWeight: 500, textAlign: 'left' }}>Devices</div>
-        <div className="scroll-container" style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+        <div className="text-[#888] text-xs font-medium text-left">Devices</div>
+        <div className="flex gap-1.5 overflow-x-auto pb-0.5 [&::-webkit-scrollbar]:hidden">
           {devices.map(([device, count]) => (
             <StatPill 
               key={device} 
@@ -532,7 +359,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               count={count} 
             />
           ))}
-          {devices.length === 0 && <span style={{ color: '#444', fontSize: '13px' }}>Waiting for data...</span>}
+          {devices.length === 0 && <span className="text-[#444] text-[13px]">Waiting for data...</span>}
         </div>
       </div>
       </div>
