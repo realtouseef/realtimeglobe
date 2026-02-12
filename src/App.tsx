@@ -64,7 +64,6 @@ function App() {
     points,
     rings,
     addPoint,
-    clearAll,
     removePoint
   } = useRealtimeData();
 

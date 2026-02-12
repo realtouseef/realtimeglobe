@@ -119,7 +119,7 @@ const StatPill: React.FC<{ icon: React.ReactNode; label: string; count?: number;
     whiteSpace: 'nowrap'
   }}>
     {typeof icon === 'string' ? (
-      <img src={icon} alt="" style={{ width: '14px', height: '14px', borderRadius: '2px' }} />
+      <img src={icon} alt="" style={{ width: '16px', height: '12px', borderRadius: '2px', objectFit: 'cover' }} />
     ) : (
       icon
     )}
@@ -180,22 +180,47 @@ export const Dashboard: React.FC<DashboardProps> = ({
   }, [visitors]);
 
   const getReferrerIcon = (ref: string) => {
-    if (ref.toLowerCase().includes('google')) return <Icons.Google />;
-    if (ref.toLowerCase().includes('twitter') || ref.toLowerCase().includes('x.com')) return 'https://abs.twimg.com/favicons/twitter.ico';
     if (ref.toLowerCase() === 'direct') return <Icons.Link />;
-    return <Icons.Link />; // Default
+    
+    const domainMap: Record<string, string> = {
+      'google': 'google.com',
+      'twitter': 'twitter.com',
+      'x.com': 'x.com',
+      'product hunt': 'producthunt.com',
+      'hacker news': 'news.ycombinator.com',
+      'github': 'github.com',
+      'facebook': 'facebook.com',
+      'linkedin': 'linkedin.com',
+      'reddit': 'reddit.com',
+      'youtube': 'youtube.com',
+      'instagram': 'instagram.com'
+    };
+
+    let domain = domainMap[ref.toLowerCase()];
+    
+    if (!domain) {
+      if (ref.includes('.')) {
+        domain = ref;
+      } else {
+        // Try to guess for unknown simple names
+        domain = `${ref.toLowerCase().replace(/\s+/g, '')}.com`;
+      }
+    }
+
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
   };
 
   const getCountryFlag = (countryName: string) => {
-    // Map country name to flag code if needed, or just use a generic flag icon
-    // For now using emoji flags is easiest without a library
-    // A simple mapping for demo purposes
-    const countryMap: Record<string, string> = {
-      'USA': '🇺🇸', 'UK': '🇬🇧', 'Japan': '🇯🇵', 'France': '🇫🇷', 'Germany': '🇩🇪',
-      'Australia': '🇦🇺', 'Singapore': '🇸🇬', 'UAE': '🇦🇪', 'Canada': '🇨🇦', 'India': '🇮🇳',
-      'Philippines': '🇵🇭', 'Bulgaria': '🇧🇬', 'Andorra': '🇦🇩'
+    const codeMap: Record<string, string> = {
+      'USA': 'us', 'UK': 'gb', 'Japan': 'jp', 'France': 'fr', 'Germany': 'de',
+      'Australia': 'au', 'Singapore': 'sg', 'UAE': 'ae', 'Canada': 'ca', 'India': 'in',
+      'Philippines': 'ph', 'Bulgaria': 'bg', 'Andorra': 'ad',
+      'China': 'cn', 'Brazil': 'br', 'Russia': 'ru', 'South Korea': 'kr', 'Italy': 'it',
+      'Spain': 'es', 'Netherlands': 'nl', 'Sweden': 'se', 'Switzerland': 'ch',
+      'Indonesia': 'id', 'Turkey': 'tr', 'Saudi Arabia': 'sa', 'Mexico': 'mx'
     };
-    return countryMap[countryName] || '🏳️';
+    const code = codeMap[countryName];
+    return code ? `https://flagcdn.com/w40/${code}.png` : 'https://flagcdn.com/w40/un.png';
   };
 
   return (
@@ -429,6 +454,43 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       <div className="scroll-container" style={{ maxHeight: 'calc(80vh - 100px)', overflowY: 'auto' }}>
         
+        {/* Visitor Summary */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          fontSize: '15px',
+          marginBottom: '20px',
+          color: '#8f97b7',
+        }}>
+          <div style={{
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            background: '#3B82F6',
+            boxShadow: '0 0 8px #3B82F6'
+          }} />
+          <div>
+            <span style={{ color: '#fff', fontWeight: 600 }}>{visitors.length}</span> visitors on 
+          </div>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: '#000',
+            padding: '4px 8px',
+            borderRadius: '6px',
+            border: '1px solid rgba(255,255,255,0.1)'
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#fff' }}>
+              <polyline points="16 18 22 12 16 6" />
+              <polyline points="8 6 2 12 8 18" />
+            </svg>
+            <span style={{ color: '#fff', fontWeight: 600 }}>{siteName}</span>
+          </div>
+          <span style={{ color: '#888' }}>(est. value: <span style={{ color: '#00ff88', fontWeight: 500 }}>${Math.floor(visitors.length * 0.67)}</span>)</span>
+        </div>
+
         {/* Stats Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '16px', alignItems: 'center' }}>
         {/* Referrers */}
