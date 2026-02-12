@@ -368,41 +368,13 @@ export const useGlobe = (config: GlobeConfig) => {
                 const el = document.createElement('div');
                 // Center the avatar on the dot (lat/lng) but offset slightly to the right to be "next to" it
                 el.innerHTML = `
-                    <div style="
-                        transform: translate(0%, -50%); /* Vertically center */
-                        pointer-events: auto;
-                        cursor: pointer;
-                        display: flex;
-                        align-items: center;
-                        position: absolute;
-                        left: 0;
-                        top: 0;
-                        z-index: 10; /* Ensure on top */
-                    ">
+                    <div class="-translate-y-1/2 pointer-events-auto cursor-pointer flex items-center absolute left-0 top-0 z-10">
                         <!-- Wrapper for positioning and scaling -->
-                        <div style="
-                            transform: scale(var(--avatar-scale, 1));
-                            transform-origin: left center;
-                            display: flex;
-                            align-items: center;
-                            padding-left: 4px; /* Small gap from the center point (where dot is) */
-                        ">
+                        <div class="origin-left flex items-center pl-1" style="transform: scale(var(--avatar-scale, 1))">
                             <!-- Avatar -->
-                            <div style="
-                                width: 24px; 
-                                height: 24px; 
-                                border-radius: 50%; 
-                                background: ${d.color || '#fff'}; 
-                                border: 1px solid rgba(255, 255, 255, 0.8);
-                                box-shadow: 0 0 4px ${d.color || '#fff'};
-                                overflow: hidden;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                position: relative;
-                            ">
+                            <div class="w-6 h-6 rounded-full border border-white/80 overflow-hidden flex items-center justify-center relative" style="background: ${d.color || '#fff'}; box-shadow: 0 0 4px ${d.color || '#fff'}">
                                 <img src="${d.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${d.label}`}" 
-                                     style="width: 100%; height: 100%; object-fit: cover;" 
+                                     class="w-full h-full object-cover" 
                                      alt="Avatar" />
                             </div>
                         </div>

@@ -110,11 +110,10 @@ export const Globe = memo((props: GlobeProps) => {
     <>
         <div 
           ref={containerRef} 
+          className="relative overflow-hidden"
           style={{  
             width: width ? `${width}px` : '100%', 
-            height: height ? `${height}px` : '100%',
-            position: 'relative',
-            overflow: 'hidden' 
+            height: height ? `${height}px` : '100%'
           }} 
         />
     </>

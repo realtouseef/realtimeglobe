@@ -59,7 +59,7 @@ const randomCoords = () => ({
   lng: (Math.random() - 0.5) * 360,
 });
 
-export function GlobeDemo() {
+export function GlobeDemo({ theme }: { theme?: 'minimal' | 'earth-night' | 'earth-day' }) {
   const {
     points,
     rings,
@@ -77,6 +77,12 @@ export function GlobeDemo() {
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<'minimal' | 'earth-night' | 'earth-day'>('minimal');
+
+  useEffect(() => {
+    if (theme) {
+      setCurrentTheme(theme);
+    }
+  }, [theme]);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   const addLog = (message: string) => {
@@ -281,7 +287,7 @@ export function GlobeDemo() {
 
   return (
     <div ref={dashboardRef} className="w-full h-full relative overflow-hidden rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-transparent bg-no-repeat bg-[length:100%_100%]" style={{ 
-      background: `radial-gradient(circle at 50% 50%, rgba(30, 58, 138, 0.6) 0%, rgba(30, 58, 138, 0) var(--glow-spread, 40%))`
+      backgroundImage: `radial-gradient(circle at 50% 50%, rgba(30, 58, 138, 0.6) 0%, rgba(30, 58, 138, 0) var(--glow-spread, 40%))`
     }}>
 
 
