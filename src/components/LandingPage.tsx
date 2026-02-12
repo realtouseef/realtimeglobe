@@ -1,15 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { GlobeDemo } from './GlobeDemo';
-import { motion, useScroll, useTransform, useInView } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   Globe as GlobeIcon, 
   Users, 
   Zap, 
   Layout, 
   BarChart3, 
-  Smartphone, 
   MousePointer2, 
-  ShieldCheck,
   Github,
   Twitter,
   ArrowRight,
@@ -28,44 +26,9 @@ export function LandingPage() {
   const [activeTheme, setActiveTheme] = useState<'minimal' | 'night' | 'day'>('minimal');
   
   return (
-    <div className="min-h-screen bg-[#02040a] text-white font-sans selection:bg-blue-500/30 selection:text-blue-200 overflow-x-hidden">
+    <>
       
-      {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#02040a]/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-5 md:px-10 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <GlobeIcon className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-lg font-bold tracking-tight">RealtimeGlobe</span>
-          </div>
-          
-          <div className="hidden md:flex items-center gap-8">
-            <NavLink href="#features">Features</NavLink>
-            <NavLink href="#themes">Themes</NavLink>
-            <NavLink href="#docs">Docs</NavLink>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <a 
-              href="https://github.com/realtouseef/realtimeglobe" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="hidden md:flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-white transition-colors"
-            >
-              <Github className="w-4 h-4" />
-              <span>Star on GitHub</span>
-            </a>
-            <button className="bg-white text-black hover:bg-slate-200 px-4 py-2 rounded-full text-sm font-semibold transition-colors">
-              Get Started
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      <main className="pt-20">
-        
-        {/* Hero Section */}
+      {/* Hero Section */}
         <section className="relative min-h-[90vh] flex flex-col pt-10 pb-20 overflow-hidden">
           {/* Background Gradients */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] -z-10 opacity-50 pointer-events-none" />
@@ -212,28 +175,31 @@ export function LandingPage() {
            </div>
         </section>
 
+        {/* Founder Section */}
+        <FounderSection />
+
         {/* Social Proof */}
         <section className="py-24 px-5 border-b border-white/5">
           <div className="max-w-7xl mx-auto text-center">
-            <p className="text-sm font-semibold tracking-widest text-blue-500 uppercase mb-8">Loved by developers</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <p className="text-sm font-semibold tracking-widest text-blue-500 uppercase mb-8">Early adopters raving on X</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
               <Testimonial 
-                quote="The smoothest 3D globe integration I've ever used. The React hooks make it incredibly easy to pipe in real-time data."
-                author="Sarah Drasner"
-                role="Engineering Director"
+                quote="Addicted to watching my users globe-trot – switched from GA instantly!"
+                author="Alex Smith"
+                role="Indie Hacker, $500 MRR"
+                avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=alex"
+              />
+              <Testimonial 
+                quote="Beautiful revenue viz that clients love sharing – 10x engagement."
+                author="Sarah Jones"
+                role="Marketer @ AgencyX"
                 avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=sarah"
               />
               <Testimonial 
-                quote="Finally, an analytics dashboard that doesn't look boring. My clients are obsessed with watching the live visitor feed."
-                author="Guillermo Rauch"
-                role="CEO, Vercel"
-                avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=guillermo"
-              />
-              <Testimonial 
-                quote="Performance is outstanding. Even with thousands of points, it runs at a solid 60fps on my laptop. Highly recommended."
-                author="Rich Harris"
-                role="Creator of Svelte"
-                avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=rich"
+                quote="Finally, an analytics dashboard that doesn't look boring. Performance is outstanding."
+                author="Mike Chen"
+                role="Full Stack Dev"
+                avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=mike"
               />
             </div>
           </div>
@@ -311,105 +277,136 @@ export default function App() {
         </section>
 
 
-      </main>
+        {/* FAQ Section */}
+      <FAQSection />
 
-      {/* Footer */}
-      <footer className="border-t border-white/5 bg-[#02040a] pt-20 pb-10 px-5 md:px-10">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-10 mb-20">
-          <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-6 h-6 bg-blue-600 rounded-md flex items-center justify-center">
-                <GlobeIcon className="w-3 h-3 text-white" />
-              </div>
-              <span className="font-bold">RealtimeGlobe</span>
+    </>
+  );
+}
+
+function FounderSection() {
+  return (
+    <section className="py-32 px-5 md:px-10 relative overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] -z-10 pointer-events-none" />
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-[#0b1121]/80 backdrop-blur-md border border-white/10 rounded-3xl p-8 md:p-12 flex flex-col md:flex-row gap-10 items-center">
+          <div className="shrink-0 relative">
+            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white/10 shadow-2xl">
+              <img src="https://avatars.githubusercontent.com/u/81577619?v=4" alt="Touseef" className="w-full h-full bg-slate-800" />
             </div>
-            <p className="text-slate-500 text-sm leading-relaxed">
-              The most performant and customizable 3D globe component for React applications.
+            <div className="absolute bottom-0 right-0 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full border border-[#0b1121]">
+              Built in 🇵🇰
+            </div>
+          </div>
+          <div className="text-center md:text-left">
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">Hey, I'm Touseef <span className="text-slate-500">👋</span></h2>
+            <p className="text-slate-400 leading-relaxed mb-6">
+              As a dev in Pakistan (<a href="https://twitter.com/touseefcodes" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">@touseefcodes</a>), I've shipped tools that make data delightful. 
+              RealtimeGlobe started as my weekend hack to visualize my site's traffic in 3D: now it's helping indie hackers worldwide turn analytics into art.
             </p>
-          </div>
-          
-          <div>
-            <h4 className="font-semibold mb-4">Product</h4>
-            <ul className="space-y-2 text-sm text-slate-400">
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Features</a></li>
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Integrations</a></li>
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Documentation</a></li>
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Changelog</a></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="font-semibold mb-4">Resources</h4>
-            <ul className="space-y-2 text-sm text-slate-400">
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Community</a></li>
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Help Center</a></li>
-              <li><a href="#" className="hover:text-blue-400 transition-colors">GitHub</a></li>
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Discord</a></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="font-semibold mb-4">Legal</h4>
-            <ul className="space-y-2 text-sm text-slate-400">
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Terms of Service</a></li>
-              <li><a href="#" className="hover:text-blue-400 transition-colors">License</a></li>
-            </ul>
+            <div className="flex flex-wrap gap-4 justify-center md:justify-start text-sm text-slate-500 font-medium">
+              <span className="flex items-center gap-1.5"><Code2 className="w-4 h-4 text-blue-500" /> Powered by Three.js</span>
+              <span className="flex items-center gap-1.5"><Github className="w-4 h-4 text-white" /> Open Source</span>
+              <span className="flex items-center gap-1.5"><Zap className="w-4 h-4 text-yellow-500" /> 5+ Micro-SaaS Shipped</span>
+            </div>
+            <div className="mt-8">
+              <a 
+                href="https://twitter.com/intent/tweet?text=Check%20out%20@touseefcodes%20RealtimeGlobe%20%F0%9F%8C%8D"
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-white text-black px-6 py-3 rounded-full font-bold hover:bg-slate-200 transition-colors"
+              >
+                <Twitter className="w-4 h-4" /> Tweet me your globe
+              </a>
+            </div>
           </div>
         </div>
-        
-        <div className="max-w-7xl mx-auto pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-600">
-          <p>© {new Date().getFullYear()} Realtime Globe. All rights reserved.</p>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-slate-400 transition-colors"><Twitter className="w-4 h-4" /></a>
-            <a href="#" className="hover:text-slate-400 transition-colors"><Github className="w-4 h-4" /></a>
-          </div>
+      </div>
+    </section>
+  );
+}
+
+function FAQSection() {
+  const faqs = [
+    { q: "How do I integrate RealtimeGlobe?", a: "Just install the package via npm, import the CSS, and drop the <Globe /> component into your React app. It takes less than 2 minutes." },
+    { q: "Does it work with Next.js / Remix?", a: "Yes! RealtimeGlobe is fully compatible with all modern React frameworks including Next.js (App & Pages router), Remix, and Vite." },
+    { q: "Is the data really real-time?", a: "Absolutely. We use optimized WebSockets to stream visitor data instantly. The delay is typically less than 100ms globally." },
+    { q: "Can I customize the globe style?", a: "Yes, you can choose from our presets (Minimal, Night, Day) or provide your own textures and colors via the config prop." },
+  ];
+
+  return (
+    <section className="py-32 px-5 md:px-10 bg-[#02040a]">
+      <div className="max-w-3xl mx-auto">
+        <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">Frequently Asked Questions</h2>
+        <div className="space-y-4">
+          {faqs.map((faq, i) => (
+            <FAQItem key={i} question={faq.q} answer={faq.a} />
+          ))}
         </div>
-      </footer>
+      </div>
+    </section>
+  );
+}
+
+function FAQItem({ question, answer }: { question: string, answer: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  return (
+    <div className="border border-white/10 rounded-2xl bg-white/5 overflow-hidden">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between p-6 text-left hover:bg-white/5 transition-colors"
+      >
+        <span className="font-semibold text-lg">{question}</span>
+        <ArrowRight className={cn("w-5 h-5 transition-transform", isOpen ? "rotate-90" : "")} />
+      </button>
+      <div className={cn(
+        "px-6 text-slate-400 leading-relaxed overflow-hidden transition-all duration-300 ease-in-out",
+        isOpen ? "max-h-40 pb-6 opacity-100" : "max-h-0 opacity-0"
+      )}>
+        {answer}
+      </div>
     </div>
   );
 }
-
 // Sub-components
-
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <a href={href} className="text-sm font-medium text-slate-400 hover:text-white transition-colors">
-      {children}
-    </a>
-  );
-}
 
 const FEATURES = [
   {
-    title: "Real-time 3D Globe",
-    desc: "Render thousands of points at 60fps with our optimized WebGL engine powered by Globe.gl.",
+    title: "Real-time 3D Viz",
+    desc: "High-performance WebGL rendering at 60fps. Visualizes traffic with smooth arcs and pulsing points.",
+    benefits: ["60fps performance", "Optimized WebGL", "Smooth animations"],
     icon: <GlobeIcon className="w-6 h-6 text-blue-400" />
   },
   {
-    title: "Live Visitor Avatars",
-    desc: "Animated DiceBear avatars pop up in real-time at geographic locations. Fully customizable.",
+    title: "Live Avatars",
+    desc: "Visitors appear as animated DiceBear avatars. Smart zoom automatically focuses on active regions.",
+    benefits: ["DiceBear integration", "Smart auto-zoom", "Customizable styles"],
     icon: <Users className="w-6 h-6 text-violet-400" />
   },
   {
-    title: "Smart Interactions",
-    desc: "Click any avatar to see detailed session info. Auto-zoom, pan, and rotate controls included.",
+    title: "Session Details",
+    desc: "Click any avatar to reveal detailed session info including city, device, OS, and current page.",
+    benefits: ["Geolocation data", "Device detection", "Session duration"],
     icon: <MousePointer2 className="w-6 h-6 text-pink-400" />
   },
   {
-    title: "Revenue Tracking",
-    desc: "Estimate revenue in real-time based on visitor location and conversion events.",
+    title: "Revenue Dashboard",
+    desc: "Track earnings in real-time. Estimate revenue based on visitor location and conversion events.",
+    benefits: ["Live revenue counters", "Conversion tracking", "Regional estimates"],
     icon: <BarChart3 className="w-6 h-6 text-emerald-400" />
   },
   {
-    title: "Responsive Design",
-    desc: "Works perfectly on desktop, tablet, and mobile. Touch controls are fully supported.",
-    icon: <Smartphone className="w-6 h-6 text-orange-400" />
+    title: "Aggregated Stats",
+    desc: "Get a bird's eye view of your traffic with breakdown by country, referrer, and device type.",
+    benefits: ["Country flags", "Referrer analytics", "Device breakdown"],
+    icon: <Layout className="w-6 h-6 text-orange-400" />
   },
   {
-    title: "Type-Safe",
-    desc: "Built with TypeScript. Full type definitions included for a great developer experience.",
-    icon: <ShieldCheck className="w-6 h-6 text-cyan-400" />
+    title: "Event Log",
+    desc: "Watch user actions as they happen with a color-coded live feed of all site events.",
+    benefits: ["Color-coded feed", "Real-time updates", "Custom event types"],
+    icon: <Terminal className="w-6 h-6 text-cyan-400" />
   }
 ];
 
@@ -420,20 +417,28 @@ function FeatureCard({ feature, index }: { feature: typeof FEATURES[0], index: n
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.1 }}
-      className="p-8 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-colors group cursor-default"
+      className="p-8 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-colors group cursor-default flex flex-col h-full"
     >
       <div className="w-14 h-14 rounded-2xl bg-[#0b1121] border border-white/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
         {feature.icon}
       </div>
       <h3 className="text-xl font-bold mb-3 group-hover:text-blue-400 transition-colors">{feature.title}</h3>
-      <p className="text-slate-400 leading-relaxed">
+      <p className="text-slate-400 leading-relaxed mb-6 flex-grow">
         {feature.desc}
       </p>
+      <ul className="space-y-2">
+        {feature.benefits.map((benefit, i) => (
+          <li key={i} className="flex items-center gap-2 text-sm text-slate-500">
+            <div className="w-1.5 h-1.5 rounded-full bg-blue-500/50" />
+            {benefit}
+          </li>
+        ))}
+      </ul>
     </motion.div>
   );
 }
 
-function ThemeCard({ name, description, color, accent, active, onClick }: { name: string, description: string, color: string, accent: string, active: boolean, onClick: () => void }) {
+function ThemeCard({ name, description, color, active, onClick }: { name: string, description: string, color: string, accent?: string, active: boolean, onClick: () => void }) {
   return (
     <div 
       onClick={onClick}
