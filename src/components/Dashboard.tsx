@@ -67,8 +67,20 @@ const Icons = {
       <path d="M5.36 14.43c-.23-.69-.36-1.43-.36-2.19 0-.77.13-1.5.36-2.19V6.97H2.6C1.08 9.99 1.08 13.52 2.6 16.55l2.76-2.12z" fill="#FBBC05"/>
       <path d="M12 4.77c1.76 0 3.34.61 4.58 1.8l3.43-3.44C17.94 1.15 15.24 0 12 0 8.02 0 4.58 2.57 2.6 6.97l2.76 2.12c.93-2.81 3.55-4.9 6.64-4.9z" fill="#EA4335"/>
     </svg>
+  ),
+  Theme: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="5" />
+      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+    </svg>
   )
 };
+
+const THEME_STYLES = [
+  { id: 'minimal', label: 'Minimal', preview: '//unpkg.com/three-globe/example/img/earth-topology.png' },
+  { id: 'earth-night', label: 'Night', preview: '//unpkg.com/three-globe/example/img/earth-night.jpg' },
+  { id: 'earth-day', label: 'Day', preview: '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg' }
+];
 
 const HeaderButton: React.FC<{ icon: React.ReactNode; onClick?: () => void }> = ({ icon, onClick }) => (
   <button 
@@ -116,50 +128,7 @@ const StatPill: React.FC<{ icon: React.ReactNode; label: string; count?: number;
   </div>
 );
 
-const ThemeSelector: React.FC<{
-  current: string;
-  onChange: (theme: 'minimal' | 'earth-night' | 'earth-day') => void;
-}> = ({ current, onChange }) => (
-  <div style={{
-    background: 'rgba(255,255,255,0.05)',
-    padding: '4px',
-    borderRadius: '12px',
-    display: 'flex',
-    marginBottom: '24px',
-    gap: '4px'
-  }}>
-    {[
-      { id: 'minimal', label: 'Minimal' },
-      { id: 'earth-night', label: 'Night' },
-      { id: 'earth-day', label: 'Day' }
-    ].map(theme => (
-      <button
-        key={theme.id}
-        onClick={() => onChange(theme.id as any)}
-        style={{
-          flex: 1,
-          padding: '8px',
-          background: current === theme.id ? 'rgba(255,255,255,0.1)' : 'transparent',
-          border: 'none',
-          borderRadius: '8px',
-          color: current === theme.id ? '#fff' : '#888',
-          fontSize: '13px',
-          cursor: 'pointer',
-          transition: 'all 0.2s',
-          fontWeight: current === theme.id ? 600 : 400
-        }}
-        onMouseEnter={e => {
-            if (current !== theme.id) e.currentTarget.style.color = '#ccc';
-        }}
-        onMouseLeave={e => {
-            if (current !== theme.id) e.currentTarget.style.color = '#888';
-        }}
-      >
-        {theme.label}
-      </button>
-    ))}
-  </div>
-);
+
 
 export const Dashboard: React.FC<DashboardProps> = ({
   visitors,
@@ -175,6 +144,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   avatarStyles
 }) => {
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
 
   // Aggregations
   const referrers = useMemo(() => {
@@ -283,6 +253,97 @@ export const Dashboard: React.FC<DashboardProps> = ({
           
           <div style={{ position: 'relative' }}>
               <button 
+                onClick={() => setIsThemeModalOpen(!isThemeModalOpen)}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  padding: 0,
+                  border: '2px solid rgba(255,255,255,0.1)',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  background: 'transparent',
+                  transition: 'transform 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                title="Change Theme"
+              >
+                 <img 
+                    src={THEME_STYLES.find(t => t.id === currentTheme)?.preview || THEME_STYLES[0].preview} 
+                    alt="Theme" 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                 />
+              </button>
+
+              {isThemeModalOpen && (
+                <>
+                    <div 
+                        style={{ position: 'fixed', inset: 0, zIndex: 100, cursor: 'default' }} 
+                        onClick={() => setIsThemeModalOpen(false)}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      top: 'calc(100% + 12px)',
+                      right: 0,
+                      width: '280px',
+                      background: 'rgba(20, 20, 30, 0.95)',
+                      borderRadius: '14px',
+                      padding: '16px',
+                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                      boxShadow: '0 12px 30px rgba(0,0,0,0.5)',
+                      zIndex: 101,
+                      backdropFilter: 'blur(10px)'
+                    }}>
+                      <div style={{
+                        fontSize: '11px',
+                        color: '#8f97b7',
+                        letterSpacing: '1px',
+                        marginBottom: '12px',
+                        fontWeight: 600,
+                        textTransform: 'uppercase'
+                      }}>
+                        Globe Theme
+                      </div>
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(44px, 1fr))',
+                        gap: '8px'
+                      }}>
+                        {THEME_STYLES.map((item) => (
+                          <button
+                            key={item.id}
+                            onClick={() => {
+                              onThemeChange(item.id as any);
+                              setIsThemeModalOpen(false);
+                            }}
+                            style={{
+                              width: '44px',
+                              height: '44px',
+                              borderRadius: '12px',
+                              border: item.id === currentTheme ? '2px solid #3B82F6' : '1px solid rgba(255, 255, 255, 0.1)',
+                              background: 'rgba(255, 255, 255, 0.05)',
+                              padding: 0,
+                              overflow: 'hidden',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease'
+                            }}
+                            title={item.label}
+                          >
+                            <img src={item.preview} alt={item.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                </>
+              )}
+          </div>
+
+          <div style={{ position: 'relative' }}>
+              <button 
                 onClick={() => setIsAvatarModalOpen(!isAvatarModalOpen)}
                 style={{
                   width: '36px',
@@ -368,9 +429,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       <div className="scroll-container" style={{ maxHeight: 'calc(80vh - 100px)', overflowY: 'auto' }}>
         
-        {/* Theme Selector */}
-        <ThemeSelector current={currentTheme} onChange={onThemeChange} />
-
         {/* Stats Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '16px', alignItems: 'center' }}>
         {/* Referrers */}
