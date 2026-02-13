@@ -76,13 +76,9 @@ export function GlobeDemo({ theme }: { theme?: 'minimal' | 'earth-night' | 'eart
   const [avatarStyle, setAvatarStyle] = useState('avataaars');
 
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState<'minimal' | 'earth-night' | 'earth-day'>('minimal');
+  const [localTheme, setLocalTheme] = useState<'minimal' | 'earth-night' | 'earth-day'>('minimal');
+  const currentTheme = theme || localTheme;
 
-  useEffect(() => {
-    if (theme) {
-      setCurrentTheme(theme);
-    }
-  }, [theme]);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   const addLog = (message: string) => {
@@ -174,7 +170,7 @@ export function GlobeDemo({ theme }: { theme?: 'minimal' | 'earth-night' | 'eart
         removePoint(lat, lng);
     }, 60000);
 
-  }, [addPoint, points, removePoint, avatarStyle, createDiceBearUrl]);
+  }, [addPoint, removePoint, avatarStyle, createDiceBearUrl]);
 
   const htmlElements = useMemo(() => (
     points.map((point) => ({
@@ -223,7 +219,7 @@ export function GlobeDemo({ theme }: { theme?: 'minimal' | 'earth-night' | 'eart
     backgroundColor: 'rgba(0,0,0,0)',
     // theme will handle textures
     globeImageUrl: null,
-    bumpImageUrl: '//unpkg.com/three-globe/example/img/earth-topology.png',
+    bumpImageUrl: null,
     backgroundImageUrl: null,
     enableAtmosphere: true,
     atmosphereColor: '#3a228a',
@@ -311,7 +307,7 @@ export function GlobeDemo({ theme }: { theme?: 'minimal' | 'earth-night' | 'eart
         onToggleFullscreen={handleToggleFullscreen}
         onRefresh={handleAddVisitor}
         currentTheme={currentTheme}
-        onThemeChange={setCurrentTheme}
+        onThemeChange={setLocalTheme}
         avatarStyle={avatarStyle}
         onAvatarStyleChange={setAvatarStyle}
         avatarStyles={avatarPreviewItems}

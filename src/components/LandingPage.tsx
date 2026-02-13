@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from '@tanstack/react-router';
 import { GlobeDemo } from './GlobeDemo';
 import { motion } from 'framer-motion';
 import { 
@@ -34,6 +35,15 @@ export function LandingPage() {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] -z-10 opacity-50 pointer-events-none" />
           <div className="absolute bottom-0 right-0 w-[800px] h-[600px] bg-violet-600/10 rounded-full blur-[100px] -z-10 pointer-events-none" />
 
+          {/* Noise Texture (Dot Pattern) Background */}
+          <div 
+            className="absolute inset-0 -z-20 pointer-events-none" 
+            style={{ 
+              backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", 
+              backgroundSize: "20px 20px", 
+            }} 
+          />
+
           <div className="max-w-7xl mx-auto px-5 md:px-10 w-full flex flex-col gap-12 items-center">
             
             {/* Hero Content */}
@@ -64,12 +74,12 @@ export function LandingPage() {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mb-16">
-                <button className="group relative px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-lg shadow-[0_0_40px_-10px_rgba(37,99,235,0.5)] transition-all hover:scale-105 active:scale-95 overflow-hidden">
+                <Link to="/demo" className="group relative px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-lg shadow-[0_0_40px_-10px_rgba(37,99,235,0.5)] transition-all hover:scale-105 active:scale-95 overflow-hidden flex items-center justify-center">
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:animate-shimmer" />
                   <span className="flex items-center gap-2">
                     Try Live Demo <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </span>
-                </button>
+                </Link>
                 
                 <a href='https://github.com/realtouseef/realtimeglobe' target='_blank' className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-bold text-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2 justify-center">
                   <Github className="w-5 h-5" />
@@ -132,7 +142,7 @@ export function LandingPage() {
                   {['Minimal', 'Night', 'Day'].map((t) => (
                     <button 
                       key={t}
-                      onClick={() => setActiveTheme(t.toLowerCase() as any)}
+                      onClick={() => setActiveTheme(t.toLowerCase() as 'minimal' | 'night' | 'day')}
                       className={cn(
                         "px-4 py-2 rounded-md text-sm font-medium transition-all",
                         activeTheme === t.toLowerCase() 

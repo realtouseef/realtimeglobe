@@ -3,40 +3,125 @@ import Globe from 'globe.gl';
 import * as THREE from 'three';
 import type { GlobeConfig, DataPoint, ArcData, RingData, CountryData, LabelData, VisitorData } from '../types/globe.types';
 
+type MaterialWithMaps = THREE.Material & {
+  color?: THREE.Color;
+  [key: string]: THREE.Texture | THREE.Color | number | string | boolean | null | undefined;
+};
+
+type GlobeInstance = {
+  globeImageUrl: (url: string | null) => GlobeInstance;
+  bumpImageUrl: (url: string | null) => GlobeInstance;
+  atmosphereColor: (color: string) => GlobeInstance;
+  globeMaterial: () => MaterialWithMaps | null;
+};
+
+function disposeMaterialMaps(material: MaterialWithMaps | null | undefined) {
+  if (!material) return;
+  const mapKeys = [
+    'map',
+    'lightMap',
+    'bumpMap',
+    'normalMap',
+    'specularMap',
+    'envMap',
+    'alphaMap',
+    'aoMap',
+    'displacementMap',
+    'emissiveMap',
+    'gradientMap',
+    'metalnessMap',
+    'roughnessMap'
+  ];
+  mapKeys.forEach((key) => {
+    const texture = material[key];
+    if (texture instanceof THREE.Texture) {
+      texture.dispose();
+      material[key] = null;
+    }
+  });
+}
+
+function applyThemeToGlobe(globe: GlobeInstance | null, theme: GlobeConfig['theme']) {
+  if (!globe) return;
+  const selectedTheme = theme || 'minimal';
+  const material = globe.globeMaterial();
+  disposeMaterialMaps(material);
+
+  if (selectedTheme === 'minimal') {
+    globe.globeImageUrl(null).bumpImageUrl(null);
+    if (material) {
+      material.color = new THREE.Color('#1a1a1a');
+      material.opacity = 1;
+      material.transparent = false;
+    }
+    globe.atmosphereColor('#3a228a');
+    return;
+  }
+
+  if (selectedTheme === 'earth-night') {
+    globe
+      .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+      .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png');
+    if (material) material.color = new THREE.Color('#ffffff');
+    globe.atmosphereColor('#3a228a');
+    return;
+  }
+
+  if (selectedTheme === 'earth-day') {
+    globe
+      .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+      .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png');
+    if (material) material.color = new THREE.Color('#ffffff');
+    globe.atmosphereColor('#1976d2');
+  }
+}
+
+function getVisitorKey(visitor: VisitorData) {
+  return `${visitor.lat.toFixed(4)}:${visitor.lng.toFixed(4)}:${visitor.label || ''}`;
+}
+
 export const useGlobe = (config: GlobeConfig) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const globeRef = useRef<any>(null);
   const [isReady, setIsReady] = useState(false);
   const isZoomedInRef = useRef<boolean | null>(null);
   const zoomThreshold = 1.4;
+  const htmlElementCacheRef = useRef<Map<string, HTMLElement>>(new Map());
+  const configRef = useRef(config);
 
   useEffect(() => {
-    if (!config.containerRef.current) return;
+    configRef.current = config;
+  }, [config]);
+
+  useEffect(() => {
+    const currentConfig = configRef.current;
+    if (!currentConfig.containerRef.current) return;
 
     // Initialize Globe
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const globe = (Globe as any)()(config.containerRef.current)
-      .globeImageUrl(config.globeImageUrl === null ? null : (config.globeImageUrl || '//unpkg.com/three-globe/example/img/earth-night.jpg'))
-      .bumpImageUrl(config.bumpImageUrl === null ? null : (config.bumpImageUrl || '//unpkg.com/three-globe/example/img/earth-topology.png'))
-      .backgroundImageUrl(config.backgroundImageUrl === null ? null : (config.backgroundImageUrl || '//unpkg.com/three-globe/example/img/night-sky.png'))
-      .backgroundColor(config.backgroundColor || '#000011')
+    const globe = (Globe as any)()(currentConfig.containerRef.current)
+      .globeImageUrl(currentConfig.globeImageUrl === null ? null : (currentConfig.globeImageUrl || null))
+      .bumpImageUrl(currentConfig.bumpImageUrl === null ? null : (currentConfig.bumpImageUrl || null))
+      .backgroundImageUrl(currentConfig.backgroundImageUrl === null ? null : (currentConfig.backgroundImageUrl || null))
+      .backgroundColor(currentConfig.backgroundColor || 'rgba(0,0,0,0)')
       .showGlobe(true)
-      .showAtmosphere(config.enableAtmosphere !== false)
-      .atmosphereColor(config.atmosphereColor || '#3a228a')
-      .atmosphereAltitude(config.atmosphereAltitude || 0.15);
+      .showAtmosphere(currentConfig.enableAtmosphere !== false)
+      .atmosphereColor(currentConfig.atmosphereColor || '#3a228a')
+      .atmosphereAltitude(currentConfig.atmosphereAltitude || 0.15);
 
     // Optimize renderer
     const renderer = globe.renderer();
     if (renderer) {
-      // Limit pixel ratio to 2 to avoid performance issues on high-DPI screens
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1));
       // Enable shadow map only if needed (not needed here)
       renderer.shadowMap.enabled = false;
+      // Enable transparent background
+      renderer.setClearColor(0x000000, 0);
     }
 
-    if (config.enableAutoRotate) {
+    if (currentConfig.enableAutoRotate) {
       globe.controls().autoRotate = true;
-      globe.controls().autoRotateSpeed = config.autoRotateSpeed || 0.5;
+      globe.controls().autoRotateSpeed = currentConfig.autoRotateSpeed || 0.5;
     }
     
     // Set initial camera distance
@@ -72,8 +157,8 @@ export const useGlobe = (config: GlobeConfig) => {
         
         const isZoomedIn = altitude < zoomThreshold;
 
-        if (config.containerRef.current) {
-            config.containerRef.current.style.setProperty('--avatar-scale', scale.toString());
+        if (currentConfig.containerRef.current) {
+            currentConfig.containerRef.current.style.setProperty('--avatar-scale', scale.toString());
             
             // Calculate glow spread based on altitude
             // Zoomed in (alt < 2.5) -> constant glow (no shrinking)
@@ -85,13 +170,13 @@ export const useGlobe = (config: GlobeConfig) => {
                 ? minGlow 
                 : Math.min(120, minGlow + (altitude - glowThreshold) * 40); // Increased max and rate
             
-            config.containerRef.current.style.setProperty('--glow-spread', `${glowSpread}%`);
+            currentConfig.containerRef.current.style.setProperty('--glow-spread', `${glowSpread}%`);
             
             // Toggle zoomed-in class for city labels
             if (isZoomedIn) {
-                config.containerRef.current.classList.add('zoomed-in');
+                currentConfig.containerRef.current.classList.add('zoomed-in');
             } else {
-                config.containerRef.current.classList.remove('zoomed-in');
+                currentConfig.containerRef.current.classList.remove('zoomed-in');
             }
         }
 
@@ -139,47 +224,7 @@ export const useGlobe = (config: GlobeConfig) => {
 
     globeRef.current = globe;
     
-    // Apply theme-specific styles
-    // This runs on init and when theme changes
-    const applyTheme = () => {
-        const theme = config.theme || 'minimal';
-        const g = globeRef.current;
-        if (!g) return;
-
-        if (theme === 'minimal') {
-            g.globeImageUrl(null)
-             .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png');
-            
-            const mat = g.globeMaterial();
-            if (mat) {
-                mat.color = new THREE.Color('#1a1a1a');
-                mat.opacity = 1;
-                mat.transparent = false;
-            }
-            g.atmosphereColor('#3a228a');
-        } else if (theme === 'earth-night') {
-            g.globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
-             .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png');
-            
-            const mat = g.globeMaterial();
-            if (mat) {
-                mat.color = new THREE.Color('#ffffff');
-            }
-            g.atmosphereColor('#3a228a');
-        } else if (theme === 'earth-day') {
-            g.globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-             .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png');
-            
-            const mat = g.globeMaterial();
-            if (mat) {
-                mat.color = new THREE.Color('#ffffff');
-            }
-            g.atmosphereColor('#1976d2');
-        }
-    };
-
-    // Apply theme immediately
-    applyTheme();
+    applyThemeToGlobe(globe, currentConfig.theme);
     
     // Use setTimeout to avoid synchronous state update in effect
     setTimeout(() => {
@@ -189,77 +234,106 @@ export const useGlobe = (config: GlobeConfig) => {
     // Use ResizeObserver for more robust resizing
     const resizeObserver = new ResizeObserver((entries) => {
         for (const entry of entries) {
-            if (entry.target === config.containerRef.current) {
-                 if (config.containerRef.current) {
-                      globe.width(config.containerRef.current.clientWidth);
-                      globe.height(config.containerRef.current.clientHeight);
+            if (entry.target === currentConfig.containerRef.current) {
+                 if (currentConfig.containerRef.current) {
+                      globe.width(currentConfig.containerRef.current.clientWidth);
+                      globe.height(currentConfig.containerRef.current.clientHeight);
                  }
             }
         }
     });
 
-    if (config.containerRef.current) {
-        resizeObserver.observe(config.containerRef.current);
+    if (currentConfig.containerRef.current) {
+        resizeObserver.observe(currentConfig.containerRef.current);
     }
     
     // Initial resize
-    if (config.containerRef.current) {
-        globe.width(config.containerRef.current.clientWidth);
-        globe.height(config.containerRef.current.clientHeight);
+    if (currentConfig.containerRef.current) {
+        globe.width(currentConfig.containerRef.current.clientWidth);
+        globe.height(currentConfig.containerRef.current.clientHeight);
     }
 
     return () => {
+      // Remove event listeners
+      if (globe.controls()) {
+          globe.controls().removeEventListener('change', updateScale);
+          globe.controls().dispose();
+      }
+
       resizeObserver.disconnect();
+      
+      // Stop animation loop if possible (globe.gl doesn't expose stop directly, but disposing renderer helps)
+       if (globe._destructor) globe._destructor(); // Try to call destructor if available
+
+       // Dispose of Three.js resources
+       const scene = globe.scene();
+       if (scene) {
+           // eslint-disable-next-line @typescript-eslint/no-explicit-any
+           scene.traverse((object: any) => {
+               if (!object.isMesh) return;
+               
+               if (object.geometry) {
+                   object.geometry.dispose();
+               }
+
+               if (object.material) {
+                  if (Array.isArray(object.material)) {
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      object.material.forEach((material: any) => {
+                          if (material.map) material.map.dispose();
+                          if (material.lightMap) material.lightMap.dispose();
+                          if (material.bumpMap) material.bumpMap.dispose();
+                          if (material.normalMap) material.normalMap.dispose();
+                          if (material.specularMap) material.specularMap.dispose();
+                          if (material.envMap) material.envMap.dispose();
+                          if (material.alphaMap) material.alphaMap.dispose();
+                          if (material.aoMap) material.aoMap.dispose();
+                          if (material.displacementMap) material.displacementMap.dispose();
+                          if (material.emissiveMap) material.emissiveMap.dispose();
+                          if (material.gradientMap) material.gradientMap.dispose();
+                          if (material.metalnessMap) material.metalnessMap.dispose();
+                          if (material.roughnessMap) material.roughnessMap.dispose();
+                          material.dispose();
+                      });
+                  } else {
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      const mat = object.material as any;
+                      if (mat.map) mat.map.dispose();
+                      if (mat.lightMap) mat.lightMap.dispose();
+                      if (mat.bumpMap) mat.bumpMap.dispose();
+                      if (mat.normalMap) mat.normalMap.dispose();
+                      if (mat.specularMap) mat.specularMap.dispose();
+                      if (mat.envMap) mat.envMap.dispose();
+                      if (mat.alphaMap) mat.alphaMap.dispose();
+                      if (mat.aoMap) mat.aoMap.dispose();
+                      if (mat.displacementMap) mat.displacementMap.dispose();
+                      if (mat.emissiveMap) mat.emissiveMap.dispose();
+                      if (mat.gradientMap) mat.gradientMap.dispose();
+                      if (mat.metalnessMap) mat.metalnessMap.dispose();
+                      if (mat.roughnessMap) mat.roughnessMap.dispose();
+                      mat.dispose();
+                  }
+              }
+          });
+      }
+
       const renderer = globe.renderer();
       if (renderer) {
           renderer.dispose();
-          // Also dispose controls to prevent memory leaks
-          if (globe.controls()) globe.controls().dispose();
+          renderer.forceContextLoss();
       }
-      if (config.containerRef.current) {
-        config.containerRef.current.innerHTML = ''; // Clear container
+
+      if (currentConfig.containerRef.current) {
+        currentConfig.containerRef.current.innerHTML = ''; // Clear container
       }
       globeRef.current = null;
     };
-  }, [config.containerRef]); // Only run once on mount when ref is available
+  }, []);
 
   // React to theme changes
   useEffect(() => {
     if (!globeRef.current) return;
-    
-    const theme = config.theme || 'minimal';
-    const g = globeRef.current;
-
-    if (theme === 'minimal') {
-        g.globeImageUrl(null)
-         .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png');
-        
-        const mat = g.globeMaterial();
-        if (mat) {
-            mat.color = new THREE.Color('#1a1a1a');
-            mat.opacity = 1;
-            mat.transparent = false;
-        }
-        g.atmosphereColor('#3a228a');
-    } else if (theme === 'earth-night') {
-        g.globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
-         .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png');
-        
-        const mat = g.globeMaterial();
-        if (mat) {
-            mat.color = new THREE.Color('#ffffff');
-        }
-        g.atmosphereColor('#3a228a');
-    } else if (theme === 'earth-day') {
-        g.globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-         .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png');
-        
-        const mat = g.globeMaterial();
-        if (mat) {
-            mat.color = new THREE.Color('#ffffff');
-        }
-        g.atmosphereColor('#1976d2');
-    }
+    applyThemeToGlobe(globeRef.current, config.theme);
   }, [config.theme]);
 
   // Memoize update functions to prevent unnecessary re-renders
@@ -273,7 +347,7 @@ export const useGlobe = (config: GlobeConfig) => {
         .pointAltitude(0.001) // Very close to surface
         .pointRadius('size')
         .pointLabel('label')
-        .pointResolution(32); // Higher resolution for smoother circles
+        .pointResolution(12); // Lower resolution for better performance
     }
   }, []);
 
@@ -358,41 +432,65 @@ export const useGlobe = (config: GlobeConfig) => {
   }, []);
 
   const updateHtmlElements = useCallback((elements: VisitorData[]) => {
-    if (globeRef.current) {
-        globeRef.current
-            .htmlElementsData(elements)
-            .htmlLat('lat')
-            .htmlLng('lng')
-            .htmlAltitude(0) // Stick to surface
-            .htmlElement((d: VisitorData) => {
-                const el = document.createElement('div');
-                // Center the avatar on the dot (lat/lng) but offset slightly to the right to be "next to" it
-                el.innerHTML = `
-                    <div class="-translate-y-1/2 pointer-events-auto cursor-pointer flex items-center absolute left-0 top-0 z-10">
-                        <!-- Wrapper for positioning and scaling -->
-                        <div class="origin-left flex items-center pl-1" style="transform: scale(var(--avatar-scale, 1))">
-                            <!-- Avatar -->
-                            <div class="w-6 h-6 rounded-full border border-white/80 overflow-hidden flex items-center justify-center relative" style="background: ${d.color || '#fff'}; box-shadow: 0 0 4px ${d.color || '#fff'}">
-                                <img src="${d.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${d.label}`}" 
-                                     class="w-full h-full object-cover" 
-                                     alt="Avatar" />
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                // Add click listener
-                el.style.pointerEvents = 'auto';
-                el.onclick = (e) => {
-                    e.stopPropagation();
-                    // Dispatch event for Globe.tsx to pick up
-                    const event = new CustomEvent('visitor-click', { detail: d });
-                    window.dispatchEvent(event);
-                };
+    if (!globeRef.current) return;
+    const cache = htmlElementCacheRef.current;
+    const nextKeys = new Set<string>();
 
-                return el;
-            });
-    }
+    elements.forEach((element) => {
+      const key = getVisitorKey(element);
+      nextKeys.add(key);
+      const color = element.color || '#fff';
+      const avatarUrl = element.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${element.label}`;
+      const template = `
+        <div class="-translate-y-1/2 pointer-events-auto cursor-pointer flex items-center absolute left-0 top-0 z-10">
+          <div class="origin-left flex items-center pl-1" style="transform: scale(var(--avatar-scale, 1))">
+            <div class="w-6 h-6 rounded-full border border-white/80 overflow-hidden flex items-center justify-center relative" style="background: ${color}; box-shadow: 0 0 4px ${color}">
+              <img src="${avatarUrl}" class="w-full h-full object-cover" alt="Avatar" />
+            </div>
+          </div>
+        </div>
+      `;
+
+      let el = cache.get(key);
+      if (!el) {
+        el = document.createElement('div');
+        cache.set(key, el);
+      }
+
+      if (el.dataset.template !== template) {
+        el.innerHTML = template;
+        el.dataset.template = template;
+        const img = el.querySelector('img');
+        if (img instanceof HTMLImageElement) {
+          img.loading = 'lazy';
+          img.decoding = 'async';
+        }
+      }
+
+      el.style.pointerEvents = 'auto';
+      el.onclick = (event) => {
+        event.stopPropagation();
+        const clickEvent = new CustomEvent('visitor-click', { detail: element });
+        window.dispatchEvent(clickEvent);
+      };
+    });
+
+    cache.forEach((value, key) => {
+      if (!nextKeys.has(key)) {
+        value.remove();
+        cache.delete(key);
+      }
+    });
+
+    globeRef.current
+      .htmlElementsData(elements)
+      .htmlLat('lat')
+      .htmlLng('lng')
+      .htmlAltitude(0)
+      .htmlElement((d: VisitorData) => {
+        const key = getVisitorKey(d);
+        return cache.get(key) || document.createElement('div');
+      });
   }, []);
 
   const getScreenCoords = useCallback((lat: number, lng: number, altitude: number = 0) => {

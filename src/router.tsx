@@ -5,6 +5,7 @@ import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { TermsOfService } from './pages/TermsOfService';
 import { License } from './pages/License';
 import { Documentation } from './pages/Documentation';
+import { FullScreenDemo } from './pages/FullScreenDemo';
 
 // 1. Create a root route
 const rootRoute = createRootRoute({
@@ -16,6 +17,12 @@ const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   component: LandingPage,
+});
+
+const demoRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/demo',
+  component: FullScreenDemo,
 });
 
 const privacyRoute = createRoute({
@@ -45,6 +52,7 @@ const docsRoute = createRoute({
 // 3. Create the route tree
 const routeTree = rootRoute.addChildren([
   indexRoute,
+  demoRoute,
   privacyRoute,
   termsRoute,
   licenseRoute,

@@ -79,8 +79,8 @@ const Icons = {
 const THEME_STYLES = [
   { id: 'minimal', label: 'Minimal', preview: '//unpkg.com/three-globe/example/img/earth-topology.png' },
   { id: 'earth-night', label: 'Night', preview: '//unpkg.com/three-globe/example/img/earth-night.jpg' },
-  { id: 'earth-day', label: 'Day', preview: '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg' }
-];
+  { id: 'earth-day', label: 'Day', preview: '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg' },
+] as const;
 
 const HeaderButton: React.FC<{ icon: React.ReactNode; onClick?: () => void }> = ({ icon, onClick }) => (
   <button 
@@ -245,7 +245,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           <button
                             key={item.id}
                             onClick={() => {
-                              onThemeChange(item.id as any);
+                              onThemeChange(item.id);
                               setIsThemeModalOpen(false);
                             }}
                             className={`w-8 h-8 rounded-lg p-0 overflow-hidden cursor-pointer transition-all duration-200 ${item.id === currentTheme ? 'border-2 border-blue-500' : 'border border-white/10 bg-white/5'}`}
